@@ -70,6 +70,31 @@
         .tabs { display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 2px solid var(--border); }
         .tab { padding: 0.75rem 1rem; cursor: pointer; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; }
         .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Estilo de la zona de carga de foto */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8fafc;
+            position: relative;
+        }
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: #f1f5f9;
+        }
+        .preview-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -130,10 +155,21 @@
                         </div>
                     </div>
                 </div>
+                
                 <div class="form-group">
-                    <label>Foto de Perfil (Opcional)</label>
-                    <input type="file" id="reg-foto" accept="image/*">
+                    <label>Foto de Perfil</label>
+                    <div id="dropzone" class="upload-area">
+                        <div id="preview-container" class="hidden">
+                            <img id="img-preview" src="" class="preview-img">
+                        </div>
+                        <div id="dropzone-text">
+                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--text-muted); margin-bottom: 0.5rem;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <p style="color: var(--text-muted); font-size: 0.875rem; font-weight: 500;">Haz clic para subir una foto</p>
+                        </div>
+                        <input type="file" id="reg-foto" accept="image/*" class="hidden">
+                    </div>
                 </div>
+
                 <button onclick="register()" style="width: 100%; margin-top: 1rem;">Completar Registro</button>
             </div>
         </div>
@@ -165,6 +201,29 @@
     <script>
         let token = localStorage.getItem('token');
         const API_URL = window.location.origin;
+
+        // Lógica de la zona de carga (Dropzone)
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('reg-foto');
+        const imgPreview = document.getElementById('img-preview');
+        const previewContainer = document.getElementById('preview-container');
+        const dropzoneText = document.getElementById('dropzone-text');
+
+        dropzone.onclick = () => fileInput.click();
+
+        fileInput.onchange = e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    imgPreview.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    dropzoneText.classList.add('hidden');
+                    dropzone.style.borderColor = 'var(--primary)';
+                };
+                reader.readAsDataURL(file);
+            }
+        };
 
         function toast(msg, icon = 'success') {
             Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true }).fire({ icon, title: msg });

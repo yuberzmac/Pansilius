@@ -51,13 +51,20 @@ CREATE TABLE items (
 
 ### Autenticación
 - `POST /register`: Registrar un nuevo usuario.
+  - **Body (JSON):** `{ "username": "admin", "password": "123" }`
 - `POST /login`: Iniciar sesión y obtener el token JWT.
+  - **Body (JSON):** `{ "username": "admin", "password": "123" }`
+  - **Respuesta:** `{ "message": "...", "token": "tu_token_aqui" }`
 
 ### CRUD de Items (Requiere Token)
+*Para todas estas rutas se debe incluir el header: `Authorization: Bearer tu_token_aqui`*
+
 - `GET /api/items`: Listar todos los items.
 - `GET /api/items/:id`: Obtener un item por ID.
 - `POST /api/items`: Crear un nuevo item.
+  - **Body (JSON):** `{ "nombre": "Laptop", "descripcion": "Gamer", "estado": false }`
 - `PUT /api/items/:id`: Actualizar un item existente.
+  - **Body (JSON):** `{ "nombre": "Laptop Pro", "descripcion": "Edición limitada", "estado": true }`
 - `DELETE /api/items/:id`: Eliminar un item.
 
 ## Ejecución
@@ -73,10 +80,15 @@ npm start
 ```
 
 ### Con Docker
-```bash
-docker build -t backend-api .
-docker run -p 3000:3000 --env-file .env backend-api
-```
+1. Construir la imagen:
+   ```bash
+   docker build -t backend-api .
+   ```
+2. Ejecutar el contenedor:
+   ```bash
+   docker run -p 3000:3000 --env-file .env backend-api
+   ```
+   *El servidor estará disponible en http://localhost:3000*
 
 ## Estructura del Proyecto
 - `src/config`: Configuración de la base de datos.

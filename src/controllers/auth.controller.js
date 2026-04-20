@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const register = async (req, res) => {
-  const { username, password, nombre, telefono, foto } = req.body;
+  const { username, password, nombre, telefono } = req.body;
+  const foto = req.file ? `/uploads/${req.file.filename}` : null; // Guardar la ruta del archivo subido
 
   if (!username || !password) {
     return res.status(400).json({ message: 'Usuario y contraseña requeridos' });
@@ -13,7 +14,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const [result] = await pool.execute(
       'INSERT INTO users (username, password, nombre, telefono, foto) VALUES (?, ?, ?, ?, ?)',
-      [username, hashedPassword, nombre || null, telefono || null, foto || null]
+      [username, hashedPassword, nombre || null, telefono || null, foto]
     );
 
     res.status(201).json({ message: 'Usuario registrado con éxito', userId: result.insertId });

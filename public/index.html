@@ -131,8 +131,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>URL de Foto de Perfil (Opcional)</label>
-                    <input type="text" id="reg-foto" placeholder="https://imagen.com/foto.jpg">
+                    <label>Foto de Perfil (Opcional)</label>
+                    <input type="file" id="reg-foto" accept="image/*">
                 </div>
                 <button onclick="register()" style="width: 100%; margin-top: 1rem;">Completar Registro</button>
             </div>
@@ -211,19 +211,27 @@
             const password = document.getElementById('reg-pass').value;
             const nombre = document.getElementById('reg-nombre').value;
             const telefono = document.getElementById('reg-tel').value;
-            const foto = document.getElementById('reg-foto').value;
+            const fotoInput = document.getElementById('reg-foto');
 
             if (!username || !password) return toast('Usuario y clave obligatorios', 'warning');
+
+            const formData = new FormData();
+            formData.append('username', username);
+            formData.append('password', password);
+            formData.append('nombre', nombre);
+            formData.append('telefono', telefono);
+            if (fotoInput.files[0]) {
+                formData.append('foto', fotoInput.files[0]);
+            }
 
             try {
                 const res = await fetch(`${API_URL}/register`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password, nombre, telefono, foto })
+                    body: formData
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    Swal.fire('¡Éxito!', 'Cuenta creada. Ya puedes iniciar sesión.', 'success');
+                    Swal.fire('¡Éxito!', 'Cuenta creada con foto. Ya puedes iniciar sesión.', 'success');
                     switchAuth(true);
                 } else { Swal.fire('Error', data.message, 'error'); }
             } catch (e) { Swal.fire('Error', 'Conexión fallida', 'error'); }

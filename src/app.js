@@ -26,6 +26,11 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Ruta raíz redirige a login
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+
 // Rutas de Autenticación
 const authController = require('./controllers/auth.controller');
 app.post('/register', upload.single('foto'), authController.register); // 'foto' es el nombre del campo en el form

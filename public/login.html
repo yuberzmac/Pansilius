@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pansilius | Iniciar Sesión</title>
+    <link rel="stylesheet" href="index.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="glass-card">
+        <div class="logo-box">P</div>
+        <h2 id="auth-title">Pansilius Pro</h2>
+        <p id="auth-subtitle">Inicia sesión para continuar</p>
+
+        <div class="tabs">
+            <button id="tab-l" class="active" onclick="toggleAuth(true)">Login</button>
+            <button id="tab-r" onclick="toggleAuth(false)">Registro</button>
+        </div>
+
+        <!-- Formulario Login -->
+        <div id="login-form">
+            <input type="text" id="l-user" placeholder="Usuario">
+            <input type="password" id="l-pass" placeholder="Contraseña">
+            <button onclick="login()" class="btn-primary">Entrar ahora</button>
+        </div>
+
+        <!-- Formulario Registro -->
+        <div id="register-form" class="hidden">
+            <input type="text" id="r-user" placeholder="Usuario *">
+            <input type="password" id="r-pass" placeholder="Clave *">
+            <input type="text" id="r-name" placeholder="Tu nombre completo">
+            <input type="text" id="r-tel" placeholder="Teléfono">
+            <div id="drop-area" class="modern-dropzone">
+                <div id="pre-view" class="hidden"><img id="avatar-img" class="avatar-preview"></div>
+                <div id="drop-text"><small>📸 Selecciona tu foto de perfil</small></div>
+                <input type="file" id="r-foto" accept="image/*" class="hidden">
+            </div>
+            <button onclick="register()" class="btn-primary">Crear mi cuenta</button>
+        </div>
+    </div>
+
+    <script>
+        if (localStorage.getItem('token')) window.location.href = '/menupanel.html';
+
+        function toggleAuth(isLogin) {
+            document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+            document.getElementById('register-form').classList.toggle('hidden', isLogin);
+            document.getElementById('tab-l').classList.toggle('active', isLogin);
+            document.getElementById('tab-r').classList.toggle('active', !isLogin);
+            document.getElementById('auth-subtitle').textContent = isLogin ? 'Inicia sesión para continuar' : 'Crea una cuenta nueva';
+        }
+
+        const dropArea = document.getElementById('drop-area');
+        const fileInp = document.getElementById('r-foto');
+        dropArea.onclick = () => fileInp.click();
+        fileInp.onchange = e => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('avatar-img').src = e.target.result;
+                    document.getElementById('pre-view').classList.remove('hidden');
+                    document.getElementById('drop-text').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        async function login() {
+            const username = document.getElementById('l-user').value;
+            const password = document.getElementById('l-pass').value;
+            try {
+                const res = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('username', username);
+                    window.location.href = '/menupanel.html';
+                } else { Swal.fire('Error', data.message, 'error'); }
+            } catch (e) { Swal.fire('Error', 'Servidor no disponible', 'error'); }
+        }
+
+        async function register() {
+            const formData = new FormData();
+            formData.append('username', document.getElementById('r-user').value);
+            formData.append('password', document.getElementById('r-pass').value);
+            formData.append('nombre', document.getElementById('r-name').value);
+            formData.append('telefono', document.getElementById('r-tel').value);
+            if (fileInp.files[0]) formData.append('foto', fileInp.files[0]);
+
+            try {
+                const res = await fetch('/register', { method: 'POST', body: formData });
+                if (res.ok) {
+                    Swal.fire('¡Éxito!', 'Cuenta creada correctamente. Inicia sesión.', 'success');
+                    toggleAuth(true);
+                } else {
+                    const d = await res.json();
+                    Swal.fire('Error', d.message, 'error');
+                }
+            } catch (e) { Swal.fire('Error', 'Error de conexión', 'error'); }
+        }
+    </script>
+</body>
+</html>

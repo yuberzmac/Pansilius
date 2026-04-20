@@ -1,111 +1,156 @@
 :root {
-    --primary: #000000;
-    --primary-hover: #2d2d2d;
-    --accent: #2563eb;
-    --bg: #ffffff;
-    --text-main: #111827;
-    --text-muted: #6b7280;
-    --border: #e5e7eb;
-    --error: #ef4444;
+    --primary: #6366f1;
+    --accent: #8b5cf6;
+    --bg-dark: #0f172a;
+    --card-bg: #1e293b;
+    --text-white: #f8fafc;
+    --text-gray: #94a3b8;
+    --input-bg: #334155;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
 body { 
-    background-color: var(--bg); 
-    color: var(--text-main); 
+    background-color: var(--bg-dark);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+    color: var(--text-white); 
+    min-height: 100vh; 
     display: flex; 
     align-items: center; 
-    justify-content: center; 
-    min-height: 100vh; 
-    -webkit-font-smoothing: antialiased;
+    justify-content: center;
+    padding: 20px;
 }
 
 .glass-card { 
+    background: var(--card-bg);
     width: 100%;
-    max-width: 400px;
-    padding: 2.5rem;
+    max-width: 500px;
+    padding: 3rem 2.5rem;
+    border-radius: 24px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    animation: zoomIn 0.5s ease-out;
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
 }
 
 .logo-box { 
-    background: var(--primary); 
-    width: 40px; height: 40px; 
-    border-radius: 8px; 
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    width: 70px; height: 70px; 
+    border-radius: 20px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-weight: 700; 
+    font-weight: 800; 
+    font-size: 2rem;
     color: white;
-    margin-bottom: 2rem;
+    margin: 0 auto 1.5rem;
 }
 
-h2 { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
-p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
+h2 { font-size: 2.25rem; font-weight: 800; text-align: center; margin-bottom: 0.5rem; letter-spacing: -0.025em; }
+p { color: var(--text-gray); text-align: center; margin-bottom: 2.5rem; font-size: 1.1rem; }
 
+/* --- Tabs Modernas --- */
 .tabs { 
     display: flex; 
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
+    background: rgba(0,0,0,0.2);
+    padding: 6px;
+    border-radius: 14px;
+    margin-bottom: 2.5rem;
 }
 .tabs button { 
-    padding: 0.75rem 1rem;
+    flex: 1;
+    padding: 12px;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
+    border-radius: 10px;
     cursor: pointer;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-gray);
     transition: all 0.2s;
 }
 .tabs button.active { 
-    color: var(--primary);
-    border-bottom-color: var(--primary);
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
-.form-group { margin-bottom: 1.25rem; }
-label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main); }
+/* --- Formulario Grande --- */
+.form-group { margin-bottom: 1.5rem; }
+label { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-gray); }
 
 input { 
     width: 100%; 
-    padding: 0.625rem 0.875rem; 
-    border: 1px solid var(--border); 
-    border-radius: 6px; 
+    padding: 16px 20px; 
+    border: 2px solid transparent; 
+    border-radius: 14px; 
     outline: none; 
-    font-size: 0.875rem;
+    font-size: 1.1rem;
+    background: var(--input-bg);
+    color: white;
     transition: all 0.2s;
 }
 input:focus { 
     border-color: var(--primary);
-    box-shadow: 0 0 0 1px var(--primary);
+    background: rgba(51, 65, 85, 0.8);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
 }
 
 button.btn-primary { 
-    background: var(--primary); 
+    background: linear-gradient(135deg, var(--primary), var(--accent));
     color: white; 
     border: none; 
-    padding: 0.75rem; 
-    border-radius: 6px; 
+    padding: 18px; 
+    border-radius: 14px; 
     cursor: pointer; 
-    font-weight: 500; 
+    font-weight: 700; 
     width: 100%;
-    font-size: 0.875rem;
-    transition: opacity 0.2s;
+    font-size: 1.125rem;
+    transition: all 0.3s;
     margin-top: 1rem;
 }
-button.btn-primary:hover { opacity: 0.9; }
+button.btn-primary:hover { 
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+}
 
+/* --- Dropzone --- */
 .modern-dropzone {
-    border: 1px dashed var(--border); 
-    border-radius: 8px; 
+    border: 2px dashed #475569; 
+    border-radius: 16px; 
     padding: 2rem; 
     text-align: center; 
     cursor: pointer; 
-    background: #fafafa;
+    background: rgba(0,0,0,0.1);
     transition: 0.2s;
-    margin-bottom: 1.5rem;
 }
-.modern-dropzone:hover { background: #f3f4f6; }
-.avatar-preview { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; }
+.modern-dropzone:hover { border-color: var(--primary); background: rgba(0,0,0,0.2); }
+
+.avatar-preview { 
+    width: 100px; height: 100px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 3px solid var(--primary);
+}
 
 .hidden { display: none !important; }
+
+/* ADAPTABLE A MÓVILES */
+@media (max-width: 480px) {
+    body { padding: 0; align-items: flex-start; }
+    .glass-card { 
+        min-height: 100vh; 
+        border-radius: 0; 
+        padding: 3rem 1.5rem;
+        border: none;
+    }
+    h2 { font-size: 2rem; }
+    input { padding: 14px 18px; font-size: 1rem; }
+}

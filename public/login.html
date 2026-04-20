@@ -3,54 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pansilius | Auth</title>
+    <title>Pansilius Pro | Acceso Administrativo</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="glass-card">
         <div class="logo-box">P</div>
-        <h2 id="auth-title">Pansilius</h2>
-        <p id="auth-subtitle">Inicia sesión en tu cuenta corporativa</p>
+        <h2>Pansilius Pro</h2>
+        <p id="auth-subtitle">Gestión inteligente de inventario</p>
 
         <div class="tabs">
-            <button id="tab-l" class="active" onclick="toggleAuth(true)">Login</button>
-            <button id="tab-r" onclick="toggleAuth(false)">Registro</button>
+            <button id="tab-l" class="active" onclick="toggleAuth(true)">Entrar</button>
+            <button id="tab-r" onclick="toggleAuth(false)">Registrarse</button>
         </div>
 
+        <!-- Login -->
         <div id="login-form">
             <div class="form-group">
-                <label>Nombre de usuario</label>
-                <input type="text" id="l-user" placeholder="ej. yuberz">
+                <label>Usuario</label>
+                <input type="text" id="l-user" placeholder="Tu nombre de usuario">
             </div>
             <div class="form-group">
                 <label>Contraseña</label>
                 <input type="password" id="l-pass" placeholder="••••••••">
             </div>
-            <button onclick="login()" class="btn-primary">Continuar</button>
+            <button onclick="login()" class="btn-primary">Entrar al Panel</button>
         </div>
 
+        <!-- Registro -->
         <div id="register-form" class="hidden">
             <div class="form-group">
                 <label>Usuario *</label>
                 <input type="text" id="r-user" placeholder="ej. yuberz">
             </div>
             <div class="form-group">
-                <label>Nombre Completo</label>
-                <input type="text" id="r-name" placeholder="Juan Pérez">
-            </div>
-            <div class="form-group">
                 <label>Contraseña *</label>
                 <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres">
             </div>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="r-name" placeholder="Juan Pérez">
+            </div>
             
-            <div id="drop-area" class="modern-dropzone">
+            <label>Foto de Perfil</label>
+            <div id="drop-area" class="modern-dropzone" style="margin-bottom: 2rem;">
                 <div id="pre-view" class="hidden"><img id="avatar-img" class="avatar-preview"></div>
-                <div id="drop-text"><small>Haz clic para subir foto de perfil</small></div>
+                <div id="drop-text">
+                    <small>📸 Toca para subir foto</small>
+                </div>
                 <input type="file" id="r-foto" accept="image/*" class="hidden">
             </div>
-            <button onclick="register()" class="btn-primary">Crear cuenta</button>
+            
+            <button onclick="register()" class="btn-primary">Crear mi Cuenta</button>
         </div>
     </div>
 
@@ -62,6 +69,7 @@
             document.getElementById('register-form').classList.toggle('hidden', isLogin);
             document.getElementById('tab-l').classList.toggle('active', isLogin);
             document.getElementById('tab-r').classList.toggle('active', !isLogin);
+            document.getElementById('auth-subtitle').textContent = isLogin ? 'Gestión inteligente de inventario' : 'Únete a nuestra plataforma';
         }
 
         const dropArea = document.getElementById('drop-area');
@@ -83,6 +91,8 @@
         async function login() {
             const username = document.getElementById('l-user').value;
             const password = document.getElementById('l-pass').value;
+            if(!username || !password) return Swal.fire('Atención', 'Completa todos los campos', 'warning');
+            
             try {
                 const res = await fetch('/login', {
                     method: 'POST',
@@ -95,7 +105,7 @@
                     localStorage.setItem('username', username);
                     window.location.href = '/menupanel.html';
                 } else { Swal.fire('Error', data.message, 'error'); }
-            } catch (e) { Swal.fire('Error', 'Error de red', 'error'); }
+            } catch (e) { Swal.fire('Error', 'Fallo de conexión', 'error'); }
         }
 
         async function register() {
@@ -114,7 +124,7 @@
                     const d = await res.json();
                     Swal.fire('Error', d.message, 'error');
                 }
-            } catch (e) { Swal.fire('Error', 'Fallo al conectar', 'error'); }
+            } catch (e) { Swal.fire('Error', 'Error al registrar', 'error'); }
         }
     </script>
 </body>

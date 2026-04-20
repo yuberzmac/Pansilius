@@ -1,178 +1,111 @@
 :root {
-    --primary: #6366f1;
-    --primary-glow: rgba(99, 102, 241, 0.5);
-    --accent: #a855f7;
-    --bg-dark: #0f172a;
-    --glass: rgba(255, 255, 255, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.5);
-    --text-main: #1e293b;
-    --text-muted: #64748b;
+    --primary: #000000;
+    --primary-hover: #2d2d2d;
+    --accent: #2563eb;
+    --bg: #ffffff;
+    --text-main: #111827;
+    --text-muted: #6b7280;
+    --border: #e5e7eb;
+    --error: #ef4444;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
 
 body { 
-    background-color: var(--bg-dark); 
+    background-color: var(--bg); 
     color: var(--text-main); 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     min-height: 100vh; 
-    overflow: hidden;
-    position: relative;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* --- Fondo Animado --- */
-body::before, body::after {
-    content: '';
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    filter: blur(80px);
-    z-index: -1;
-    animation: move 20s infinite alternate;
-}
-body::before {
-    background: var(--primary-glow);
-    top: -100px;
-    left: -100px;
-}
-body::after {
-    background: rgba(168, 85, 247, 0.3);
-    bottom: -100px;
-    right: -100px;
-    animation-delay: -10s;
-}
-
-@keyframes move {
-    from { transform: translate(0, 0); }
-    to { transform: translate(100px, 100px); }
-}
-
-/* --- Tarjeta de Cristal --- */
 .glass-card { 
-    background: var(--glass); 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 28px; 
-    padding: 3rem; 
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
-    border: 1px solid var(--glass-border); 
-    width: 420px;
-    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
 }
 
 .logo-box { 
-    background: linear-gradient(135deg, var(--primary), var(--accent)); 
-    width: 56px; height: 56px; 
-    border-radius: 16px; 
+    background: var(--primary); 
+    width: 40px; height: 40px; 
+    border-radius: 8px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    font-weight: 800; 
-    font-size: 1.75rem; 
+    font-weight: 700; 
     color: white;
-    margin: 0 auto 1.5rem;
-    box-shadow: 0 10px 15px -3px var(--primary-glow);
+    margin-bottom: 2rem;
 }
 
-h2 { font-weight: 800; font-size: 1.75rem; margin-bottom: 0.5rem; text-align: center; letter-spacing: -0.025em; }
-p { color: var(--text-muted); text-align: center; margin-bottom: 2.5rem; font-size: 0.95rem; }
+h2 { font-size: 1.875rem; font-weight: 700; letter-spacing: -0.025em; margin-bottom: 0.5rem; }
+p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.95rem; }
 
-/* --- Tabs --- */
 .tabs { 
     display: flex; 
-    gap: 0.5rem; 
-    margin-bottom: 2rem; 
-    background: rgba(0,0,0,0.05); 
-    padding: 0.4rem; 
-    border-radius: 14px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
 }
 .tabs button { 
-    flex: 1; 
-    padding: 0.75rem; 
-    border-radius: 10px; 
-    border: none; 
-    cursor: pointer; 
-    font-weight: 700;
-    background: transparent;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
     color: var(--text-muted);
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
+    transition: all 0.2s;
 }
 .tabs button.active { 
-    background: white; 
-    color: var(--primary); 
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+    color: var(--primary);
+    border-bottom-color: var(--primary);
 }
 
-/* --- Formulario --- */
+.form-group { margin-bottom: 1.25rem; }
+label { display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main); }
+
 input { 
     width: 100%; 
-    padding: 1rem 1.25rem; 
-    border: 1px solid rgba(0,0,0,0.08); 
-    border-radius: 14px; 
+    padding: 0.625rem 0.875rem; 
+    border: 1px solid var(--border); 
+    border-radius: 6px; 
     outline: none; 
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    background: rgba(255,255,255,0.5);
-    transition: all 0.3s;
+    font-size: 0.875rem;
+    transition: all 0.2s;
 }
 input:focus { 
-    background: white;
-    border-color: var(--primary); 
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.15); 
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
 }
 
 button.btn-primary { 
-    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    background: var(--primary); 
     color: white; 
     border: none; 
-    padding: 1.1rem; 
-    border-radius: 14px; 
+    padding: 0.75rem; 
+    border-radius: 6px; 
     cursor: pointer; 
-    font-weight: 700; 
+    font-weight: 500; 
     width: 100%;
-    font-size: 1rem;
-    box-shadow: 0 10px 15px -3px var(--primary-glow);
-    transition: all 0.3s;
+    font-size: 0.875rem;
+    transition: opacity 0.2s;
     margin-top: 1rem;
 }
-button.btn-primary:hover { 
-    transform: translateY(-2px); 
-    box-shadow: 0 20px 25px -5px var(--primary-glow);
-}
+button.btn-primary:hover { opacity: 0.9; }
 
 .modern-dropzone {
-    border: 2px dashed rgba(99,102,241,0.3); 
-    border-radius: 16px; 
-    padding: 1.5rem; 
+    border: 1px dashed var(--border); 
+    border-radius: 8px; 
+    padding: 2rem; 
     text-align: center; 
     cursor: pointer; 
-    background: rgba(255,255,255,0.3); 
-    transition: 0.3s; 
+    background: #fafafa;
+    transition: 0.2s;
     margin-bottom: 1.5rem;
 }
-.modern-dropzone:hover { border-color: var(--primary); background: rgba(255,255,255,0.6); }
-
-.avatar-preview { 
-    width: 90px; height: 90px; 
-    border-radius: 24px; 
-    object-fit: cover; 
-    margin-bottom: 1rem; 
-    border: 4px solid white; 
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
-}
+.modern-dropzone:hover { background: #f3f4f6; }
+.avatar-preview { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 1rem; }
 
 .hidden { display: none !important; }
-
-/* Responsive */
-@media (max-width: 480px) {
-    .glass-card { width: 90%; padding: 2rem; }
-}

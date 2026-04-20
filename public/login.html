@@ -3,42 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pansilius | Iniciar Sesión</title>
+    <title>Pansilius | Auth</title>
     <link rel="stylesheet" href="index.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="glass-card">
         <div class="logo-box">P</div>
-        <h2 id="auth-title">Pansilius Pro</h2>
-        <p id="auth-subtitle">Inicia sesión para continuar</p>
+        <h2 id="auth-title">Pansilius</h2>
+        <p id="auth-subtitle">Inicia sesión en tu cuenta corporativa</p>
 
         <div class="tabs">
             <button id="tab-l" class="active" onclick="toggleAuth(true)">Login</button>
             <button id="tab-r" onclick="toggleAuth(false)">Registro</button>
         </div>
 
-        <!-- Formulario Login -->
         <div id="login-form">
-            <input type="text" id="l-user" placeholder="Usuario">
-            <input type="password" id="l-pass" placeholder="Contraseña">
-            <button onclick="login()" class="btn-primary">Entrar ahora</button>
+            <div class="form-group">
+                <label>Nombre de usuario</label>
+                <input type="text" id="l-user" placeholder="ej. yuberz">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="l-pass" placeholder="••••••••">
+            </div>
+            <button onclick="login()" class="btn-primary">Continuar</button>
         </div>
 
-        <!-- Formulario Registro -->
         <div id="register-form" class="hidden">
-            <input type="text" id="r-user" placeholder="Usuario *">
-            <input type="password" id="r-pass" placeholder="Clave *">
-            <input type="text" id="r-name" placeholder="Tu nombre completo">
-            <input type="text" id="r-tel" placeholder="Teléfono">
+            <div class="form-group">
+                <label>Usuario *</label>
+                <input type="text" id="r-user" placeholder="ej. yuberz">
+            </div>
+            <div class="form-group">
+                <label>Nombre Completo</label>
+                <input type="text" id="r-name" placeholder="Juan Pérez">
+            </div>
+            <div class="form-group">
+                <label>Contraseña *</label>
+                <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres">
+            </div>
+            
             <div id="drop-area" class="modern-dropzone">
                 <div id="pre-view" class="hidden"><img id="avatar-img" class="avatar-preview"></div>
-                <div id="drop-text"><small>📸 Selecciona tu foto de perfil</small></div>
+                <div id="drop-text"><small>Haz clic para subir foto de perfil</small></div>
                 <input type="file" id="r-foto" accept="image/*" class="hidden">
             </div>
-            <button onclick="register()" class="btn-primary">Crear mi cuenta</button>
+            <button onclick="register()" class="btn-primary">Crear cuenta</button>
         </div>
     </div>
 
@@ -50,7 +62,6 @@
             document.getElementById('register-form').classList.toggle('hidden', isLogin);
             document.getElementById('tab-l').classList.toggle('active', isLogin);
             document.getElementById('tab-r').classList.toggle('active', !isLogin);
-            document.getElementById('auth-subtitle').textContent = isLogin ? 'Inicia sesión para continuar' : 'Crea una cuenta nueva';
         }
 
         const dropArea = document.getElementById('drop-area');
@@ -84,7 +95,7 @@
                     localStorage.setItem('username', username);
                     window.location.href = '/menupanel.html';
                 } else { Swal.fire('Error', data.message, 'error'); }
-            } catch (e) { Swal.fire('Error', 'Servidor no disponible', 'error'); }
+            } catch (e) { Swal.fire('Error', 'Error de red', 'error'); }
         }
 
         async function register() {
@@ -92,19 +103,18 @@
             formData.append('username', document.getElementById('r-user').value);
             formData.append('password', document.getElementById('r-pass').value);
             formData.append('nombre', document.getElementById('r-name').value);
-            formData.append('telefono', document.getElementById('r-tel').value);
             if (fileInp.files[0]) formData.append('foto', fileInp.files[0]);
 
             try {
                 const res = await fetch('/register', { method: 'POST', body: formData });
                 if (res.ok) {
-                    Swal.fire('¡Éxito!', 'Cuenta creada correctamente. Inicia sesión.', 'success');
+                    Swal.fire('¡Éxito!', 'Cuenta creada correctamente.', 'success');
                     toggleAuth(true);
                 } else {
                     const d = await res.json();
                     Swal.fire('Error', d.message, 'error');
                 }
-            } catch (e) { Swal.fire('Error', 'Error de conexión', 'error'); }
+            } catch (e) { Swal.fire('Error', 'Fallo al conectar', 'error'); }
         }
     </script>
 </body>

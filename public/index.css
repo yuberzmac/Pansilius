@@ -1,91 +1,178 @@
 :root {
     --primary: #6366f1;
-    --primary-hover: #4f46e5;
-    --bg-body: #f1f5f9;
-    --card-white: #ffffff;
-    --text-dark: #0f172a;
-    --text-gray: #64748b;
-    --border: #e2e8f0;
+    --primary-glow: rgba(99, 102, 241, 0.5);
+    --accent: #a855f7;
+    --bg-dark: #0f172a;
+    --glass: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.5);
+    --text-main: #1e293b;
+    --text-muted: #64748b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
 
 body { 
-    background-color: var(--bg-body); 
-    color: var(--text-dark); 
+    background-color: var(--bg-dark); 
+    color: var(--text-main); 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     min-height: 100vh; 
+    overflow: hidden;
+    position: relative;
 }
 
+/* --- Fondo Animado --- */
+body::before, body::after {
+    content: '';
+    position: absolute;
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    animation: move 20s infinite alternate;
+}
+body::before {
+    background: var(--primary-glow);
+    top: -100px;
+    left: -100px;
+}
+body::after {
+    background: rgba(168, 85, 247, 0.3);
+    bottom: -100px;
+    right: -100px;
+    animation-delay: -10s;
+}
+
+@keyframes move {
+    from { transform: translate(0, 0); }
+    to { transform: translate(100px, 100px); }
+}
+
+/* --- Tarjeta de Cristal --- */
 .glass-card { 
-    background: var(--card-white); 
-    border-radius: 24px; 
-    padding: 2.5rem; 
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); 
-    border: 1px solid rgba(255,255,255,0.8); 
-    width: 450px;
+    background: var(--glass); 
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 28px; 
+    padding: 3rem; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+    border: 1px solid var(--glass-border); 
+    width: 420px;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .logo-box { 
-    background: var(--primary); 
-    width: 45px; height: 45px; 
-    border-radius: 12px; 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
+    width: 56px; height: 56px; 
+    border-radius: 16px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
     font-weight: 800; 
-    font-size: 1.5rem; 
+    font-size: 1.75rem; 
     color: white;
     margin: 0 auto 1.5rem;
+    box-shadow: 0 10px 15px -3px var(--primary-glow);
 }
 
-h2 { font-weight: 700; margin-bottom: 0.5rem; text-align: center; }
-p { color: var(--text-gray); text-align: center; margin-bottom: 2rem; }
+h2 { font-weight: 800; font-size: 1.75rem; margin-bottom: 0.5rem; text-align: center; letter-spacing: -0.025em; }
+p { color: var(--text-muted); text-align: center; margin-bottom: 2.5rem; font-size: 0.95rem; }
 
-.tabs { display: flex; gap: 1rem; margin-bottom: 2rem; }
+/* --- Tabs --- */
+.tabs { 
+    display: flex; 
+    gap: 0.5rem; 
+    margin-bottom: 2rem; 
+    background: rgba(0,0,0,0.05); 
+    padding: 0.4rem; 
+    border-radius: 14px;
+}
 .tabs button { 
     flex: 1; 
     padding: 0.75rem; 
     border-radius: 10px; 
     border: none; 
     cursor: pointer; 
-    font-weight: 600;
-    background: #f1f5f9;
-    color: #64748b;
-    transition: 0.3s;
+    font-weight: 700;
+    background: transparent;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
 }
-.tabs button.active { background: var(--primary); color: white; }
+.tabs button.active { 
+    background: white; 
+    color: var(--primary); 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
 
+/* --- Formulario --- */
 input { 
     width: 100%; 
-    padding: 0.875rem 1rem; 
-    border: 1px solid var(--border); 
-    border-radius: 12px; 
+    padding: 1rem 1.25rem; 
+    border: 1px solid rgba(0,0,0,0.08); 
+    border-radius: 14px; 
     outline: none; 
     margin-bottom: 1rem;
     font-size: 1rem;
+    background: rgba(255,255,255,0.5);
+    transition: all 0.3s;
 }
-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+input:focus { 
+    background: white;
+    border-color: var(--primary); 
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.15); 
+}
 
 button.btn-primary { 
-    background-color: var(--primary); 
+    background: linear-gradient(135deg, var(--primary), var(--accent)); 
     color: white; 
     border: none; 
-    padding: 1rem; 
-    border-radius: 12px; 
+    padding: 1.1rem; 
+    border-radius: 14px; 
     cursor: pointer; 
     font-weight: 700; 
     width: 100%;
-    transition: 0.2s;
+    font-size: 1rem;
+    box-shadow: 0 10px 15px -3px var(--primary-glow);
+    transition: all 0.3s;
+    margin-top: 1rem;
 }
-button.btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+button.btn-primary:hover { 
+    transform: translateY(-2px); 
+    box-shadow: 0 20px 25px -5px var(--primary-glow);
+}
 
 .modern-dropzone {
-    border: 2px dashed #e2e8f0; border-radius: 15px; padding: 1.5rem; text-align: center; cursor: pointer; background: #f8fafc; transition: 0.3s; margin-bottom: 1.5rem;
+    border: 2px dashed rgba(99,102,241,0.3); 
+    border-radius: 16px; 
+    padding: 1.5rem; 
+    text-align: center; 
+    cursor: pointer; 
+    background: rgba(255,255,255,0.3); 
+    transition: 0.3s; 
+    margin-bottom: 1.5rem;
 }
-.modern-dropzone:hover { border-color: var(--primary); background: #f1f5f9; }
-.avatar-preview { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; margin-bottom: 1rem; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.modern-dropzone:hover { border-color: var(--primary); background: rgba(255,255,255,0.6); }
+
+.avatar-preview { 
+    width: 90px; height: 90px; 
+    border-radius: 24px; 
+    object-fit: cover; 
+    margin-bottom: 1rem; 
+    border: 4px solid white; 
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); 
+}
 
 .hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 480px) {
+    .glass-card { width: 90%; padding: 2rem; }
+}

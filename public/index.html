@@ -3,248 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pansilius | Premium Dashboard</title>
+    <title>Pansilius | Acceso Corporativo</title>
+    <!-- Agregamos un parámetro de versión para forzar la actualización del CSS -->
+    <link rel="stylesheet" href="index.css?v=1.2">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #6366f1;
-            --primary-light: #818cf8;
-            --secondary: #64748b;
-            --bg-body: #f1f5f9;
-            --sidebar-bg: #1e293b;
-            --card-white: #ffffff;
-            --text-dark: #0f172a;
-            --text-gray: #64748b;
-            --success: #10b981;
-            --danger: #ef4444;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-dark); overflow-x: hidden; }
-
-        /* --- Layout --- */
-        .wrapper { display: flex; min-height: 100vh; }
-        
-        /* --- Sidebar --- */
-        .sidebar {
-            width: 260px;
-            background-color: var(--sidebar-bg);
-            color: white;
-            padding: 2rem 1.5rem;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s;
-        }
-        .logo { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 3rem; }
-        .logo-box { background: var(--primary); width: 35px; height: 35px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.2rem; }
-        
-        .nav-item {
-            padding: 0.875rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: #94a3b8;
-            transition: all 0.2s;
-        }
-        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: white; }
-        .nav-item.active { background: var(--primary); }
-
-        /* --- Content Area --- */
-        .main-content { flex: 1; padding: 2rem; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
-        
-        .user-profile { display: flex; align-items: center; gap: 1rem; background: white; padding: 0.5rem 1rem; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        .user-avatar { width: 40px; height: 40px; border-radius: 12px; object-fit: cover; background: #e2e8f0; }
-
-        /* --- Stats Cards --- */
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
-        .stat-card { background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; }
-        .stat-val { font-size: 1.875rem; font-weight: 700; margin-top: 0.5rem; }
-        .stat-label { color: var(--text-gray); font-size: 0.875rem; font-weight: 500; }
-
-        /* --- UI Elements --- */
-        .glass-card { background: var(--card-white); border-radius: 24px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.8); }
-        
-        .btn-add { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-add:hover { background: var(--primary-hover); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(99,102,241,0.3); }
-
-        /* --- Product Grid --- */
-        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem; }
-        .product-card { 
-            background: white; border-radius: 20px; padding: 1.5rem; 
-            transition: all 0.3s; border: 1px solid #f1f5f9;
-            position: relative;
-        }
-        .product-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .p-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; }
-        .p-desc { color: var(--text-gray); font-size: 0.875rem; margin-bottom: 1.5rem; line-height: 1.5; }
-        
-        .badge { padding: 0.3rem 0.8rem; border-radius: 8px; font-size: 0.75rem; font-weight: 700; }
-        .badge-active { background: #dcfce7; color: #15803d; }
-        .badge-inactive { background: #fee2e2; color: #b91c1c; }
-
-        /* --- Form overlay --- */
-        .modal { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 100; }
-        .modal-content { background: white; width: 500px; padding: 2.5rem; border-radius: 24px; animation: slideUp 0.3s ease-out; }
-
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-        .hidden { display: none !important; }
-
-        /* Dropzone modernizado */
-        .modern-dropzone {
-            border: 2px dashed #e2e8f0; border-radius: 15px; padding: 1.5rem; text-align: center; cursor: pointer; background: #f8fafc; transition: 0.3s;
-        }
-        .modern-dropzone:hover { border-color: var(--primary); background: #f1f5f9; }
-        .avatar-preview { width: 80px; height: 80px; border-radius: 20px; object-fit: cover; margin-bottom: 1rem; border: 3px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-    </style>
+    <!-- Tipografía Inter de Google Fonts para un look profesional -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- Pantalla de Auth -->
-    <div id="auth-screen" style="display: flex; align-items: center; justify-content: center; min-height: 100vh;">
-        <div class="glass-card" style="width: 450px;">
-            <div style="text-align: center; margin-bottom: 2rem;">
-                <div class="logo-box" style="margin: 0 auto 1rem;">P</div>
-                <h2>Pansilius Pro</h2>
-                <p style="color: var(--text-gray);">Bienvenido al panel administrativo</p>
-            </div>
+    <div class="glass-card">
+        <div class="logo-box">P</div>
+        <h2>Pansilius Pro</h2>
+        <p id="auth-subtitle">Inicia sesión en la plataforma administrativa</p>
 
-            <div class="tabs" style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                <button onclick="toggleAuth(true)" id="tab-l" style="flex: 1; background: #f1f5f9; color: #64748b;">Login</button>
-                <button onclick="toggleAuth(false)" id="tab-r" style="flex: 1; background: #f1f5f9; color: #64748b;">Registro</button>
-            </div>
+        <div class="tabs">
+            <button id="tab-l" class="active" onclick="toggleAuth(true)">Ingresar</button>
+            <button id="tab-r" onclick="toggleAuth(false)">Nueva Cuenta</button>
+        </div>
 
-            <div id="login-form">
-                <input type="text" id="l-user" placeholder="Usuario" style="margin-bottom: 1rem;">
-                <input type="password" id="l-pass" placeholder="Contraseña" style="margin-bottom: 1.5rem;">
-                <button onclick="login()" style="width: 100%;">Entrar ahora</button>
+        <!-- Formulario de Entrada -->
+        <div id="login-form">
+            <div class="form-group">
+                <label>Nombre de usuario</label>
+                <input type="text" id="l-user" placeholder="ej. admin">
             </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="l-pass" placeholder="••••••••">
+            </div>
+            <button onclick="login()" class="btn-primary">Entrar ahora</button>
+        </div>
 
-            <div id="register-form" class="hidden">
-                <input type="text" id="r-user" placeholder="Usuario *" style="margin-bottom: 0.75rem;">
-                <input type="password" id="r-pass" placeholder="Clave *" style="margin-bottom: 0.75rem;">
-                <input type="text" id="r-name" placeholder="Tu nombre" style="margin-bottom: 0.75rem;">
-                <div id="drop-area" class="modern-dropzone" style="margin-bottom: 1rem;">
+        <!-- Formulario de Registro -->
+        <div id="register-form" class="hidden">
+            <div class="form-group">
+                <label>Usuario *</label>
+                <input type="text" id="r-user" placeholder="ej. yuberz">
+            </div>
+            <div class="form-group">
+                <label>Nombre completo</label>
+                <input type="text" id="r-name" placeholder="Tu nombre">
+            </div>
+            <div class="form-group">
+                <label>Contraseña *</label>
+                <input type="password" id="r-pass" placeholder="Mínimo 6 caracteres">
+            </div>
+            
+            <div class="form-group">
+                <label>Foto de perfil</label>
+                <div id="drop-area" class="modern-dropzone">
                     <div id="pre-view" class="hidden"><img id="avatar-img" class="avatar-preview"></div>
-                    <div id="drop-text">
-                        <small>📸 Clic para subir foto</small>
-                    </div>
+                    <div id="drop-text"><small>📷 Toca para subir imagen</small></div>
                     <input type="file" id="r-foto" accept="image/*" class="hidden">
                 </div>
-                <button onclick="register()" style="width: 100%;">Crear Cuenta</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Dashboard Principal -->
-    <div id="dashboard-screen" class="wrapper hidden">
-        <aside class="sidebar">
-            <div class="logo">
-                <div class="logo-box">P</div>
-                <h2 style="font-size: 1.25rem;">Pansilius</h2>
-            </div>
-            <div class="nav-item active">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                Dashboard
-            </div>
-            <div class="nav-item" onclick="toast('Próximamente', 'info')">
-                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                Reportes
-            </div>
-            <div style="margin-top: auto;">
-                <div class="nav-item" onclick="logout()" style="color: #f87171;">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                    Cerrar Sesión
-                </div>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-bar">
-                <div>
-                    <h1 style="font-size: 1.75rem;">Bienvenido de nuevo</h1>
-                    <p style="color: var(--text-gray);">Mira lo que está pasando hoy en tu tienda.</p>
-                </div>
-                <div class="user-profile">
-                    <img id="header-avatar" src="" class="user-avatar" alt="Avatar">
-                    <span id="user-name" style="font-weight: 600;">Usuario</span>
-                </div>
-            </header>
-
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">Total Productos</div>
-                    <div class="stat-val" id="stat-total">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Activos</div>
-                    <div class="stat-val" id="stat-active" style="color: var(--success);">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Inactivos</div>
-                    <div class="stat-val" id="stat-inactive" style="color: var(--danger);">0</div>
-                </div>
-            </div>
-
-            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-                <h2 style="margin-bottom: 0;">Mis Productos</h2>
-                <button onclick="showModal(true)" class="btn-add">+ Añadir Producto</button>
-            </div>
-
-            <div id="product-container" class="product-grid">
-                <!-- Se llena dinámicamente -->
-            </div>
-        </main>
-    </div>
-
-    <!-- Modal Formulario -->
-    <div id="item-modal" class="modal">
-        <div class="modal-content">
-            <h2 id="modal-title">Nuevo Producto</h2>
-            <div class="form-group">
-                <label>Nombre</label>
-                <input type="text" id="i-nombre" placeholder="Nombre del producto">
-            </div>
-            <div class="form-group">
-                <label>Descripción</label>
-                <input type="text" id="i-desc" placeholder="Breve descripción">
-            </div>
-            <div class="form-group">
-                <label>Estado</label>
-                <select id="i-estado">
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
-                </select>
-            </div>
-            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                <button onclick="saveItem()" style="flex: 2;">Guardar Producto</button>
-                <button onclick="showModal(false)" class="secondary" style="flex: 1;">Cancelar</button>
-            </div>
+            
+            <button onclick="register()" class="btn-primary">Crear cuenta corporativa</button>
         </div>
     </div>
 
     <script>
-        let token = localStorage.getItem('token');
-        const API_URL = window.location.origin;
+        // Redirigir si ya hay token
+        if (localStorage.getItem('token')) window.location.href = '/menupanel.html';
 
-        // --- UI Logic ---
         function toggleAuth(isLogin) {
             document.getElementById('login-form').classList.toggle('hidden', !isLogin);
             document.getElementById('register-form').classList.toggle('hidden', isLogin);
-            document.getElementById('tab-l').style.background = isLogin ? 'var(--primary)' : '#f1f5f9';
-            document.getElementById('tab-l').style.color = isLogin ? 'white' : '#64748b';
-            document.getElementById('tab-r').style.background = !isLogin ? 'var(--primary)' : '#f1f5f9';
-            document.getElementById('tab-r').style.color = !isLogin ? 'white' : '#64748b';
+            document.getElementById('tab-l').classList.toggle('active', isLogin);
+            document.getElementById('tab-r').classList.toggle('active', !isLogin);
+            document.getElementById('auth-subtitle').textContent = isLogin 
+                ? 'Inicia sesión en la plataforma administrativa' 
+                : 'Crea una cuenta para gestionar el inventario';
         }
 
-        function showModal(show) { document.getElementById('item-modal').style.display = show ? 'flex' : 'none'; }
-
-        // Dropzone
         const dropArea = document.getElementById('drop-area');
         const fileInp = document.getElementById('r-foto');
         dropArea.onclick = () => fileInp.click();
@@ -256,34 +88,33 @@
                     document.getElementById('avatar-img').src = e.target.result;
                     document.getElementById('pre-view').classList.remove('hidden');
                     document.getElementById('drop-text').classList.add('hidden');
-                }
+                };
                 reader.readAsDataURL(file);
             }
-        }
+        };
 
-        function toast(title, icon = 'success') {
-            Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 }).fire({ icon, title });
-        }
-
-        // --- Core Functions ---
         async function login() {
             const username = document.getElementById('l-user').value;
             const password = document.getElementById('l-pass').value;
+            if(!username || !password) return Swal.fire('Error', 'Completa los campos', 'warning');
+
             try {
-                const res = await fetch(`${API_URL}/login`, { 
-                    method: 'POST', 
+                const res = await fetch('/login', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    token = data.token;
-                    localStorage.setItem('token', token);
+                    localStorage.setItem('token', data.token);
                     localStorage.setItem('username', username);
-                    // Como no tenemos un endpoint para ver datos del user actual, usaremos el username
-                    initDashboard();
-                } else { Swal.fire('Error', data.message, 'error'); }
-            } catch (e) { Swal.fire('Error', 'Servidor desconectado', 'error'); }
+                    window.location.href = '/menupanel.html';
+                } else {
+                    Swal.fire('Atención', data.message, 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error de red', 'No se pudo conectar con el servidor', 'error');
+            }
         }
 
         async function register() {
@@ -294,88 +125,18 @@
             if (fileInp.files[0]) formData.append('foto', fileInp.files[0]);
 
             try {
-                const res = await fetch(`${API_URL}/register`, { method: 'POST', body: formData });
+                const res = await fetch('/register', { method: 'POST', body: formData });
                 if (res.ok) {
-                    Swal.fire('¡Éxito!', 'Cuenta creada. Inicia sesión.', 'success');
+                    Swal.fire('¡Éxito!', 'Cuenta creada correctamente. Ya puedes ingresar.', 'success');
                     toggleAuth(true);
                 } else {
                     const d = await res.json();
                     Swal.fire('Error', d.message, 'error');
                 }
-            } catch (e) { Swal.fire('Error', 'Fallo de conexión', 'error'); }
-        }
-
-        function logout() {
-            localStorage.clear();
-            location.reload();
-        }
-
-        async function loadItems() {
-            try {
-                const res = await fetch(`${API_URL}/api/items`, { headers: { 'Authorization': `Bearer ${token}` } });
-                if (!res.ok) return logout();
-                const items = await res.json();
-                
-                // Stats
-                document.getElementById('stat-total').textContent = items.length;
-                document.getElementById('stat-active').textContent = items.filter(i => i.estado).length;
-                document.getElementById('stat-inactive').textContent = items.filter(i => !i.estado).length;
-
-                const container = document.getElementById('product-container');
-                container.innerHTML = items.map(i => `
-                    <div class="product-card">
-                        <span class="badge ${i.estado ? 'badge-active' : 'badge-inactive'}" style="position: absolute; top: 1.5rem; right: 1.5rem;">
-                            ${i.estado ? 'Activo' : 'Inactivo'}
-                        </span>
-                        <div class="p-name">${i.nombre}</div>
-                        <div class="p-desc">${i.descripcion || 'Sin descripción'}</div>
-                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                            <button onclick="deleteItem(${i.id})" class="danger" style="flex: 1; padding: 0.5rem;">Borrar</button>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (e) { toast('Error de carga', 'error'); }
-        }
-
-        async function saveItem() {
-            const nombre = document.getElementById('i-nombre').value;
-            const descripcion = document.getElementById('i-desc').value;
-            const estado = document.getElementById('i-estado').value === 'true';
-
-            if (!nombre) return toast('Nombre requerido', 'warning');
-
-            try {
-                const res = await fetch(`${API_URL}/api/items`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ nombre, descripcion, estado })
-                });
-                if (res.ok) {
-                    toast('¡Guardado!');
-                    showModal(false);
-                    loadItems();
-                }
-            } catch (e) { toast('Error al guardar', 'error'); }
-        }
-
-        async function deleteItem(id) {
-            const r = await Swal.fire({ title: '¿Estás seguro?', text: 'Se eliminará permanentemente', icon: 'warning', showCancelButton: true });
-            if (r.isConfirmed) {
-                await fetch(`${API_URL}/api/items/${id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                loadItems();
-                toast('Eliminado');
+            } catch (e) {
+                Swal.fire('Error', 'Error al registrar', 'error');
             }
         }
-
-        function initDashboard() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('dashboard-screen').classList.remove('hidden');
-            document.getElementById('user-name').textContent = localStorage.getItem('username');
-            // Nota: Aquí se podría buscar la foto del user, por ahora ponemos el default
-            loadItems();
-        }
-
-        if (token) initDashboard();
     </script>
 </body>
 </html>

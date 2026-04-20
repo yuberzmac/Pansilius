@@ -31,12 +31,8 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Rutas de Autenticación
-const authController = require('./controllers/auth.controller');
-app.post('/register', upload.single('foto'), authController.register); // 'foto' es el nombre del campo en el form
-app.post('/login', authController.login);
-
-// Rutas del CRUD principal
+// Rutas
+app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/items', require('./routes/items.routes'));
 
 module.exports = app;

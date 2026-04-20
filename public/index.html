@@ -99,7 +99,7 @@
             if(!username || !password) return Swal.fire('Error', 'Completa los campos', 'warning');
 
             try {
-                const res = await fetch('/login', {
+                const res = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
@@ -125,7 +125,7 @@
             if (fileInp.files[0]) formData.append('foto', fileInp.files[0]);
 
             try {
-                const res = await fetch('/register', { method: 'POST', body: formData });
+                const res = await fetch('/api/auth/register', { method: 'POST', body: formData });
                 if (res.ok) {
                     Swal.fire('¡Éxito!', 'Cuenta creada correctamente. Ya puedes ingresar.', 'success');
                     toggleAuth(true);

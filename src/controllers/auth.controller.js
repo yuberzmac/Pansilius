@@ -48,14 +48,42 @@ const login = async (req, res) => {
   }
 };
 
+const getProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const [rows] = await pool.execute('SELECT id, username, nombre, telefono, foto FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error al obtener el perfil', error: error.message });
+  }
+};
+
+const verifyPassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { password } = req.body;
+
+    const [rows] = await pool.execute('SELECT password FROM users WHERE id = ?', [userId]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
+
+    const isMatch = await bcrypt.compare(password, rows[0].password);
+    if (!isMatch) return res.status(401).json({ message: 'Contraseña incorrecta' });
+
+    res.json({ message: 'Contraseña verificada' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al verificar contraseña', error: error.message });
+  }
+};
+
 const updateProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { nombre, password } = req.body;
+    const { nombre, telefono, password } = req.body;
     const foto = req.file ? `/uploads/${req.file.filename}` : null;
 
-    let query = 'UPDATE users SET nombre = ?';
-    let params = [nombre];
+    let query = 'UPDATE users SET nombre = ?, telefono = ?';
+    let params = [nombre || null, telefono || null];
 
     if (password) {
       const hashedPassword = await bcrypt.hash(password, 10);
@@ -78,4 +106,4 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, updateProfile };
+module.exports = { register, login, getProfile, updateProfile, verifyPassword };

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -8,10 +9,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({ message: 'API Backend funcionando correctamente' });
-});
+// Servir archivos estáticos (Frontend)
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Rutas de Autenticación (según requerimiento)
 const authController = require('./controllers/auth.controller');

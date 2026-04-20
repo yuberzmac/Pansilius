@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard API | Enregble</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1, h2 {
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        button.danger {
+            background-color: var(--danger);
+        }
+
+        button.danger:hover {
+            background-color: var(--danger-hover);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background-color: var(--bg-color);
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .badge.active { background-color: #d1fae5; color: #065f46; }
+        .badge.inactive { background-color: #fee2e2; color: #991b1b; }
+
+        .hidden { display: none; }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+
+        .alert.success { background-color: #d1fae5; color: #065f46; border: 1px solid #10b981; }
+        .alert.error { background-color: #fee2e2; color: #991b1b; border: 1px solid #ef4444; }
+
+        .flex-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Panel de Control API</h2>
+        <div id="user-info" class="hidden">
+            <span id="username-display" style="margin-right: 1rem;"></span>
+            <button onclick="logout()" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Cerrar Sesión</button>
+        </div>
+    </header>
+
+    <main>
+        <div id="alert-box" class="alert"></div>
+
+        <!-- Sección de Autenticación -->
+        <div id="auth-section" class="container">
+            <h2>Autenticación</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Ingresa para interactuar con la API.</p>
+            
+            <div class="flex-row">
+                <div class="form-group" style="flex: 1;">
+                    <label>Usuario</label>
+                    <input type="text" id="auth-user" placeholder="Nombre de usuario">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Contraseña</label>
+                    <input type="password" id="auth-pass" placeholder="Contraseña">
+                </div>
+            </div>
+            <div style="margin-top: 1rem;">
+                <button onclick="login()">Iniciar Sesión</button>
+                <button onclick="register()" style="background-color: var(--text-muted); margin-left: 0.5rem;">Registrar</button>
+            </div>
+        </div>
+
+        <!-- Sección del CRUD -->
+        <div id="crud-section" class="container hidden">
+            <h2>Gestión de Items</h2>
+            
+            <div style="background-color: var(--bg-color); padding: 1.5rem; border-radius: 6px; margin-bottom: 2rem;">
+                <h3 style="margin-bottom: 1rem; font-size: 1.1rem;">Nuevo Item</h3>
+                <div class="flex-row">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Nombre</label>
+                        <input type="text" id="item-nombre" placeholder="Ej. Laptop Gamer">
+                    </div>
+                    <div class="form-group" style="flex: 2;">
+                        <label>Descripción</label>
+                        <input type="text" id="item-desc" placeholder="Descripción del producto...">
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        <select id="item-estado" style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
+                    </div>
+                    <button onclick="createItem()" style="margin-bottom: 1rem;">Crear</button>
+                </div>
+            </div>
+
+            <table id="items-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <!-- Los items se cargarán aquí -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        let token = localStorage.getItem('token');
+        const API_URL = window.location.origin;
+
+        // Utilidades de interfaz
+        function showAlert(msg, isError = false) {
+            const alertBox = document.getElementById('alert-box');
+            alertBox.textContent = msg;
+            alertBox.className = `alert ${isError ? 'error' : 'success'}`;
+            alertBox.style.display = 'block';
+            setTimeout(() => alertBox.style.display = 'none', 3000);
+        }
+
+        function checkAuth() {
+            if (token) {
+                document.getElementById('auth-section').classList.add('hidden');
+                document.getElementById('crud-section').classList.remove('hidden');
+                document.getElementById('user-info').classList.remove('hidden');
+                loadItems();
+            } else {
+                document.getElementById('auth-section').classList.remove('hidden');
+                document.getElementById('crud-section').classList.add('hidden');
+                document.getElementById('user-info').classList.add('hidden');
+            }
+        }
+
+        // --- AUTH ---
+        async function login() {
+            const username = document.getElementById('auth-user').value;
+            const password = document.getElementById('auth-pass').value;
+
+            try {
+                const res = await fetch(`${API_URL}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    token = data.token;
+                    localStorage.setItem('token', token);
+                    showAlert('Inicio de sesión exitoso');
+                    document.getElementById('username-display').textContent = `Usuario: ${username}`;
+                    checkAuth();
+                } else {
+                    showAlert(data.message, true);
+                }
+            } catch (error) {
+                showAlert('Error de conexión', true);
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('auth-user').value;
+            const password = document.getElementById('auth-pass').value;
+
+            try {
+                const res = await fetch(`${API_URL}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                
+                if (res.ok) {
+                    showAlert('Registro exitoso. Ahora puedes iniciar sesión.');
+                } else {
+                    showAlert(data.message, true);
+                }
+            } catch (error) {
+                showAlert('Error de conexión', true);
+            }
+        }
+
+        function logout() {
+            token = null;
+            localStorage.removeItem('token');
+            checkAuth();
+            showAlert('Sesión cerrada');
+        }
+
+        // --- CRUD ---
+        async function loadItems() {
+            try {
+                const res = await fetch(`${API_URL}/api/items`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (res.status === 401 || res.status === 403) {
+                    logout();
+                    return showAlert('Tu sesión ha expirado', true);
+                }
+
+                const items = await res.json();
+                const tbody = document.getElementById('items-body');
+                tbody.innerHTML = '';
+
+                items.forEach(item => {
+                    const tr = document.createElement('tr');
+                    const isActivo = item.estado === 1 || item.estado === true;
+                    tr.innerHTML = `
+                        <td>${item.id}</td>
+                        <td style="font-weight: 500;">${item.nombre}</td>
+                        <td style="color: var(--text-muted);">${item.descripcion || '-'}</td>
+                        <td><span class="badge ${isActivo ? 'active' : 'inactive'}">${isActivo ? 'Activo' : 'Inactivo'}</span></td>
+                        <td class="actions">
+                            <button onclick="deleteItem(${item.id})" class="danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Eliminar</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch (error) {
+                showAlert('Error cargando items', true);
+            }
+        }
+
+        async function createItem() {
+            const nombre = document.getElementById('item-nombre').value;
+            const descripcion = document.getElementById('item-desc').value;
+            const estado = document.getElementById('item-estado').value === 'true';
+
+            if (!nombre) return showAlert('El nombre es requerido', true);
+
+            try {
+                const res = await fetch(`${API_URL}/api/items`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ nombre, descripcion, estado })
+                });
+
+                if (res.ok) {
+                    showAlert('Item creado correctamente');
+                    document.getElementById('item-nombre').value = '';
+                    document.getElementById('item-desc').value = '';
+                    loadItems();
+                } else {
+                    showAlert('Error al crear item', true);
+                }
+            } catch (error) {
+                showAlert('Error de conexión', true);
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('¿Estás seguro de eliminar este item?')) return;
+
+            try {
+                const res = await fetch(`${API_URL}/api/items/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    showAlert('Item eliminado');
+                    loadItems();
+                } else {
+                    showAlert('Error al eliminar', true);
+                }
+            } catch (error) {
+                showAlert('Error de conexión', true);
+            }
+        }
+
+        // Init
+        checkAuth();
+    </script>
+</body>
+</html>

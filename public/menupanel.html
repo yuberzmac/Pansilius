@@ -88,13 +88,13 @@
 
     <script>
         const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/login.html';
+        if (!token) window.location.href = '/index.html';
 
         function showModal(show) { document.getElementById('item-modal').style.display = show ? 'flex' : 'none'; }
         
         function logout() {
             localStorage.clear();
-            window.location.href = '/login.html';
+            window.location.href = '/index.html';
         }
 
         async function loadItems() {

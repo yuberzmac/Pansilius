@@ -26,9 +26,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Ruta raíz redirige a login
+// Ruta raíz redirige a index.html (Login)
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/login.html'));
+  res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 // Rutas de Autenticación

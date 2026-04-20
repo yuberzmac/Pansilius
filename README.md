@@ -1,99 +1,86 @@
-# API Backend con Node.js y MySQL
+# Pansilius Pro | Gestión de Inventario & Perfil Corporativo
 
-Este proyecto es una API REST desarrollada con Node.js y Express, integrada con una base de datos MySQL (db4free.net) y autenticación mediante JWT.
+Este proyecto es una plataforma administrativa integral desarrollada con **Node.js, Express y MySQL**. Incluye un Dashboard moderno, gestión de productos, perfiles de usuario con seguridad avanzada y una potente interfaz de línea de comandos (CLI).
 
-## Requisitos
+## ✨ Características Principales
+
+- **Dashboard Administrativo:** Interfaz visual premium para gestionar productos en tiempo real.
+- **Gestión de Productos:** CRUD completo (Crear, Leer, Actualizar, Eliminar) con estados activos/inactivos.
+- **Perfil de Usuario:** Actualización de datos personales (nombre, teléfono, contraseña) y foto de perfil.
+- **Seguridad JWT:** Sesiones protegidas y visualización de token de acceso mediante confirmación de contraseña.
+- **Pansilius CLI:** Control total de la plataforma desde la terminal con un modo interactivo personalizado.
+
+## 🛠️ Requisitos
 
 - Node.js (v18 o superior)
-- Docker (opcional, para contenerización)
-- Base de datos MySQL en db4free.net o similar
+- MySQL / MariaDB
+- Docker (opcional)
 
-## Configuración
+## 🚀 Instalación Rápida
 
-1. Clonar el repositorio.
-2. Instalar dependencias:
-   ```bash
-   npm install
-   ```
-3. Configurar las variables de entorno en un archivo `.env` (basado en el archivo `.env` de ejemplo):
-   ```env
-   PORT=3000
-   DB_HOST=db4free.net
-   DB_USER=tu_usuario
-   DB_PASSWORD=tu_password
-   DB_NAME=tu_base_de_datos
-   DB_PORT=3306
-   JWT_SECRET=tu_secreto_seguro
-   ```
+1.  **Clonar y Dependencias:**
+    ```bash
+    git clone https://github.com/yuberzmac/Pansilius.git
+    cd Pansilius
+    npm install
+    ```
 
-## Base de Datos
+2.  **Configuración (.env):**
+    Crea un archivo `.env` en la raíz:
+    ```env
+    PORT=3000
+    DB_HOST=tu_host
+    DB_USER=tu_usuario
+    DB_PASSWORD=tu_password
+    DB_NAME=tu_base_de_datos
+    JWT_SECRET=tu_secreto_seguro
+    ```
 
-Deberás crear las siguientes tablas en tu base de datos:
+3.  **Base de Datos:**
+    Asegúrate de tener las tablas `users` e `items`. La tabla `users` ahora incluye los campos `nombre`, `telefono` y `foto`.
 
-```sql
-CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+## 💻 Pansilius CLI (Consola Interactiva)
 
-CREATE TABLE items (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nombre VARCHAR(100) NOT NULL,
-  descripcion TEXT,
-  estado BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+Puedes controlar todo el sistema desde tu terminal sin usar el navegador.
 
-## Endpoints
+1.  **Instalar globalmente:**
+    ```bash
+    npm link
+    ```
+2.  **Iniciar consola:**
+    ```bash
+    pansilius
+    ```
+3.  **Comandos disponibles dentro de Pansilius CLI:**
+    - `login <usuario> <pass>`: Inicia tu sesión corporativa.
+    - `list`: Muestra la tabla de productos.
+    - `add "Nombre" "Descripción" true`: Añade un nuevo producto.
+    - `delete <id>`: Elimina un producto por su ID.
+    - `profile`: Muestra tu información personal.
+    - `clear`: Limpia la consola.
+    - `exit`: Cierra la sesión de consola.
 
-### Autenticación
-- `POST /register`: Registrar un nuevo usuario.
-  - **Body (JSON):** `{ "username": "admin", "password": "123" }`
-- `POST /login`: Iniciar sesión y obtener el token JWT.
-  - **Body (JSON):** `{ "username": "admin", "password": "123" }`
-  - **Respuesta:** `{ "message": "...", "token": "tu_token_aqui" }`
+## 🐳 Docker
 
-### CRUD de Items (Requiere Token)
-*Para todas estas rutas se debe incluir el header: `Authorization: Bearer tu_token_aqui`*
+Para correr la aplicación en un contenedor aislado:
 
-- `GET /api/items`: Listar todos los items.
-- `GET /api/items/:id`: Obtener un item por ID.
-- `POST /api/items`: Crear un nuevo item.
-  - **Body (JSON):** `{ "nombre": "Laptop", "descripcion": "Gamer", "estado": false }`
-- `PUT /api/items/:id`: Actualizar un item existente.
-  - **Body (JSON):** `{ "nombre": "Laptop Pro", "descripcion": "Edición limitada", "estado": true }`
-- `DELETE /api/items/:id`: Eliminar un item.
+1.  **Construir imagen:**
+    ```bash
+    docker build -t pansilius-app .
+    ```
+2.  **Correr contenedor:**
+    ```bash
+    docker run -p 3000:3000 --env-file .env pansilius-app
+    ```
 
-## Ejecución
+## 🔐 Seguridad del Perfil
 
-### Modo Desarrollo
-```bash
-npm run dev
-```
+El sistema incluye una capa extra de protección:
+- Las contraseñas se encriptan con **bcryptjs**.
+- Para visualizar el **Token de Sesión** desde el perfil web, el sistema solicitará tu contraseña nuevamente para verificar tu identidad, protegiendo tu acceso de terceros.
 
-### Modo Producción
-```bash
-npm start
-```
-
-### Con Docker
-1. Construir la imagen:
-   ```bash
-   docker build -t backend-api .
-   ```
-2. Ejecutar el contenedor:
-   ```bash
-   docker run -p 3000:3000 --env-file .env backend-api
-   ```
-   *El servidor estará disponible en http://localhost:3000*
-
-## Estructura del Proyecto
-- `src/config`: Configuración de la base de datos.
-- `src/controllers`: Lógica de los endpoints.
-- `src/middleware`: Middlewares (Autenticación).
-- `src/routes`: Definición de rutas.
-- `src/app.js`: Configuración de Express.
-- `src/index.js`: Punto de entrada del servidor.
+## 📂 Estructura
+- `src/`: Lógica del servidor (Controladores, Rutas, Middlewares).
+- `public/`: Interfaz web (Dashboard, Login, CSS).
+- `cli.js`: Motor de la consola Pansilius.
+- `uploads/`: Almacenamiento de fotos de perfil.

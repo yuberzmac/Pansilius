@@ -48,4 +48,34 @@ const login = async (req, res) => {
   }
 };
 
-module.exports = { register, login };
+const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { nombre, password } = req.body;
+    const foto = req.file ? `/uploads/${req.file.filename}` : null;
+
+    let query = 'UPDATE users SET nombre = ?';
+    let params = [nombre];
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query += ', password = ?';
+      params.push(hashedPassword);
+    }
+
+    if (foto) {
+      query += ', foto = ?';
+      params.push(foto);
+    }
+
+    query += ' WHERE id = ?';
+    params.push(userId);
+
+    await pool.execute(query, params);
+    res.json({ message: 'Perfil actualizado con éxito', foto: foto || undefined });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al actualizar el perfil', error: error.message });
+  }
+};
+
+module.exports = { register, login, updateProfile };

@@ -1,76 +1,113 @@
-# Pansilius Pro | Sistema de Gestión de Inventario
+# 🛡️ Pansilius Pro | Enterprise Inventory Management System
 
-![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
-![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
+![Status](https://img.shields.io/badge/Status-Production--Ready-success?style=for-the-badge)
+![Security](https://img.shields.io/badge/Security-SSL%20%2F%20JWT-blue?style=for-the-badge)
+![Maintained](https://img.shields.io/badge/Maintained-Yes-orange?style=for-the-badge)
 
-Pansilius Pro es una plataforma administrativa integral para la gestión de productos y usuarios. Cuenta con una API REST robusta, seguridad avanzada con JWT y una interfaz de línea de comandos (CLI) personalizada.
+Pansilius Pro is a professional-grade backend solution for real-time inventory control. Engineered with **Node.js 20**, **Express 5**, and **MySQL**, it provides a secure, scalable, and high-performance environment for administrative operations.
 
-## 🌐 Accesos en Producción
+---
 
-El sistema está desplegado y protegido con certificados SSL (HTTPS):
+## 🌐 Production Infrastructure
 
-- **Panel de Control (App):** [https://git.minecraft17.online](https://git.minecraft17.online)
-- **Base de Datos (phpMyAdmin):** [https://minecraft17.online](https://minecraft17.online)
+The system is deployed using a professional-tier architecture:
 
-## 🚀 Características Principales
+| Component | URL / Endpoint | Purpose |
+| :--- | :--- | :--- |
+| **Pansilius Web** | [https://git.minecraft17.online](https://git.minecraft17.online) | Main Dashboard & User Authentication |
+| **Database Admin**| [https://minecraft17.online](https://minecraft17.online) | phpMyAdmin Interface (DB Management) |
+| **API Base URL**  | `https://git.minecraft17.online/api` | RESTful Endpoint for external integrations |
 
-- **API RESTful:** Gestión completa de productos y usuarios.
-- **Autenticación Segura:** Encriptación con `bcryptjs` y protección de rutas mediante `JWT`.
-- **Arquitectura de Producción:** 
-  - **Proxy Inverso:** Nginx gestionando el tráfico HTTPS.
-  - **Gestor de Procesos:** PM2 para garantizar alta disponibilidad (auto-restart).
-  - **SSL:** Certificados automáticos con Let's Encrypt.
-- **Pansilius CLI:** Control total desde la terminal.
+---
 
-## 💻 Pansilius CLI
+## 🚀 Key Features
 
-La herramienta de consola permite interactuar con la API sin usar el navegador.
+### 🔐 Advanced Security
+- **JWT Authorization:** Stateless authentication using JSON Web Tokens.
+- **Bcrypt Hashing:** Industry-standard password encryption.
+- **Protected Routes:** Middleware-level access control for all sensitive operations.
+- **SSL Termination:** Automatic HTTPS enforcement via Nginx and Let's Encrypt.
 
-### Instalación
-```bash
-sudo npm link
-```
+### 📦 Inventory Engine
+- **Full CRUD:** Create, Read, Update, and Delete items with real-time validation.
+- **Asset Management:** Integrated file uploading system via Multer for product images.
+- **Relational Integrity:** Optimized MySQL schema for data consistency.
 
-### Comandos
-- `login <user> <pass>`: Iniciar sesión y guardar token.
-- `list`: Ver tabla de productos.
-- `add <nombre> <desc>`: Crear nuevo ítem.
-- `delete <id>`: Eliminar ítem por ID.
-- `profile`: Ver datos del usuario actual.
+### 💻 Pansilius CLI (Command Line Interface)
+A powerful terminal-based tool to manage the system without a browser:
+- `login <user> <pass>`: Authenticate and persist session locally.
+- `list`: View inventory in a formatted ASCII table.
+- `add "Name" "Description"`: Quick item insertion.
+- `delete <id>`: Instant removal of inventory records.
+- `profile`: Check current user session details.
 
-## 🛠️ Tecnologías Utilizadas
+---
 
-- **Backend:** Node.js, Express.
-- **Base de Datos:** MySQL.
-- **Servidor Web:** Nginx (Proxy) & Apache (phpMyAdmin).
-- **Seguridad:** JWT, BcryptJS, Certbot (SSL).
-
-## 📂 Estructura del Proyecto
+## 🛠️ Technical Architecture
 
 ```text
-├── src/
-│   ├── config/      # Conexión a DB
-│   ├── controllers/ # Lógica de negocio
-│   ├── middleware/  # Verificación de JWT
-│   ├── routes/      # Endpoints de la API
-│   ├── app.js       # Configuración Express
-│   └── index.js     # Arranque del servidor
-├── public/          # Frontend Web
-├── cli.js           # Motor de Pansilius CLI
-└── uploads/         # Almacenamiento de imágenes
-```
-
-## ⚙️ Configuración del Entorno (.env)
-```env
-PORT=3000
-DB_HOST=localhost
-DB_USER=tu_usuario
-DB_PASSWORD=tu_password
-DB_NAME=pansilius_db
-JWT_SECRET=tu_secreto_super_seguro
+                     [ Internet ]
+                          |
+                  [ Nginx Reverse Proxy ]
+                 (Port 80/443 - SSL Termination)
+                 /                  \
+    [ Pansilius App ]           [ Apache Server ]
+    (Port 3000 - Node.js)       (Port 8080 - phpMyAdmin)
+            \                       /
+             \---[ MySQL Server ]---/
+                  (Port 3306)
 ```
 
 ---
-**Desarrollado como proyecto de implementación de API Backend.**
+
+## 🔌 API Documentation
+
+### Authentication (`/auth`)
+- `POST /register`: Create new account (Supports multipart/form-data for profile photos).
+- `POST /login`: Returns JWT token on success.
+- `GET /profile`: (Protected) Returns logged-in user details.
+
+### Inventory (`/items`)
+- `GET /`: List all items.
+- `GET /:id`: Detailed view of a single item.
+- `POST /`: Add new item (JSON body: `nombre`, `descripcion`, `estado`).
+- `PUT /:id`: Update existing item.
+- `DELETE /:id`: Remove item from database.
+
+---
+
+## 📥 Local Setup & Deployment
+
+1. **Clone & Install:**
+   ```bash
+   git clone https://github.com/yuberzmac/Pansilius.git
+   cd Pansilius
+   npm install
+   ```
+
+2. **Environment Configuration (`.env`):**
+   ```env
+   PORT=3000
+   DB_HOST=localhost
+   DB_USER=mysql
+   DB_PASSWORD=123456
+   DB_NAME=Pansilius
+   JWT_SECRET=your_secret_key
+   ```
+
+3. **Running in Production (PM2):**
+   ```bash
+   sudo npm install -g pm2
+   pm2 start src/index.js --name pansilius
+   pm2 save
+   pm2 startup
+   ```
+
+## 🛡️ Maintenance & Logs
+To monitor the system in real-time:
+- **App Logs:** `pm2 logs pansilius`
+- **Nginx Status:** `sudo systemctl status nginx`
+- **Error Logs:** `tail -f /var/log/nginx/error.log`
+
+---
+**Developed as a specialized Backend Implementation Project.**

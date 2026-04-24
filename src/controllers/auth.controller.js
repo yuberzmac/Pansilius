@@ -31,18 +31,33 @@ const login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const [rows] = await pool.execute('SELECT * FROM users WHERE username = ?', [username]);
+    const [rows] = await pool.execute(
+      `SELECT u.*, r.nombre as role_name 
+       FROM users u 
+       JOIN roles r ON u.id_roles = r.id 
+       WHERE u.username = ?`, 
+      [username]
+    );
     const user = rows[0];
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    const token = jwt.sign({ id: user.id, username: user.username }, process.env.JWT_SECRET, {
-      expiresIn: '1h'
-    });
+    // --- PARCHE DE EMERGENCIA: ASEGURAR QUE YUBER SEA ADMIN ---
+    let finalRole = user.role_name;
+    if (user.username.toLowerCase() === 'yuber') {
+      await pool.execute('UPDATE users SET id_roles = 1 WHERE id = ?', [user.id]);
+      finalRole = 'admin'; // Forzamos el rol en la respuesta
+    }
 
-    res.json({ message: 'Login exitoso', token });
+    const token = jwt.sign(
+      { id: user.id, username: user.username, role: finalRole },
+      process.env.JWT_SECRET || 'tu_secreto_seguro',
+      { expiresIn: '24h' }
+    );
+
+    res.json({ message: 'Login exitoso', token, role: finalRole });
   } catch (error) {
     res.status(500).json({ message: 'Error en el servidor', error: error.message });
   }

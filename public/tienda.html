@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pansilius Store | Catálogo</title>
+    <link rel="stylesheet" href="menupanel.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="wrapper">
+        <aside class="sidebar" style="background-image: linear-gradient(180deg, #4f46e5 0%, #312e81 100%);">
+            <div class="logo">
+                <div class="logo-box" style="background: white; color: var(--primary); padding: 5px;">S</div>
+                <h2 style="font-size: 1.25rem; color: white;">Pansilius Store</h2>
+            </div>
+            <div id="nav-dashboard" class="nav-item active" onclick="toggleView('dashboard')">Explorar Tienda</div>
+            <div id="nav-purchases" class="nav-item" onclick="toggleView('purchases')">Mis Compras</div>
+            <div id="nav-profile" class="nav-item" onclick="toggleView('profile')">Mi Cuenta</div>
+            <div style="margin-top: auto;">
+                <div class="nav-item" onclick="logout()" style="color: #fca5a5;">Cerrar Sesión</div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Shop View -->
+            <div id="view-dashboard">
+                <header class="top-bar">
+                    <div>
+                        <h1>¡Hola, <span id="welcome-name">Usuario</span>!</h1>
+                        <p>Encuentra los mejores productos seleccionados para ti.</p>
+                    </div>
+                    <div class="user-profile">
+                        <img id="user-img-small" src="" alt="" class="user-avatar" style="display:none;">
+                        <span id="user-name" style="font-weight: 600;">Usuario</span>
+                        <span class="badge badge-active" style="margin-left: 10px; font-size: 0.7rem; background: #e0e7ff; color: #4338ca;">Cliente</span>
+                    </div>
+                </header>
+
+                <div id="product-container" class="product-grid" style="margin-top: 2rem;">
+                    <!-- Se llena con productos activos -->
+                </div>
+            </div>
+
+            <!-- Purchases View -->
+            <div id="view-purchases" class="hidden">
+                <header class="top-bar">
+                    <div>
+                        <h1>Tu Historial</h1>
+                        <p>Revisa tus compras realizadas.</p>
+                    </div>
+                </header>
+
+                <div class="stat-card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio Pagado</th>
+                                <th>Fecha de Compra</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchases-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Profile View -->
+            <div id="view-profile" class="hidden">
+                <header class="top-bar">
+                    <div>
+                        <h1>Configuración</h1>
+                        <p>Gestiona tus datos de facturación y perfil.</p>
+                    </div>
+                </header>
+                <div class="stat-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+                    <img id="profile-img-preview" src="" style="width: 120px; height: 120px; border-radius: 30px; object-fit: cover; margin-bottom: 1.5rem; border: 4px solid var(--primary);">
+                    <form id="profile-form" style="text-align: left;">
+                        <label>Nombre Completo</label>
+                        <input type="text" id="p-nombre">
+                        <label>Teléfono de contacto</label>
+                        <input type="text" id="p-telefono">
+                        <button type="button" onclick="updateProfile()" class="btn-add" style="width: 100%;">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const role = localStorage.getItem('role');
+
+        if (!token) {
+            window.location.href = '/index.html';
+        } else if (role === 'admin') {
+            window.location.href = '/menupanel.html';
+        }
+
+        function logout() { localStorage.clear(); window.location.href = '/index.html'; }
+
+        function toggleView(view) {
+            ['dashboard', 'purchases', 'profile'].forEach(v => {
+                document.getElementById('view-' + v).classList.toggle('hidden', v !== view);
+                document.getElementById('nav-' + v).classList.toggle('active', v === view);
+            });
+            if (view === 'dashboard') loadItems();
+            if (view === 'purchases') loadPurchases();
+            if (view === 'profile') loadProfile();
+        }
+
+        async function loadItems() {
+            try {
+                const res = await fetch('/api/items', { headers: { 'Authorization': `Bearer ${token}` } });
+                const items = await res.json();
+                const container = document.getElementById('product-container');
+                
+                if (items.length === 0) {
+                    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <p style="font-size: 1.2rem;">No hay productos disponibles en este momento.</p>
+                    </div>`;
+                    return;
+                }
+
+                container.innerHTML = items.map(i => {
+                    const outOfStock = i.stock <= 0;
+                    return `
+                        <div class="product-card" style="animation: scaleIn 0.3s ease forwards; opacity: ${outOfStock ? '0.7' : '1'}">
+                            <div class="p-name" style="font-size: 1.4rem;">${i.nombre}</div>
+                            <p class="p-desc">${i.descripcion || 'Sin descripción detallada.'}</p>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+                                ${outOfStock ? '❌ <span style="color: var(--danger); font-weight: 700;">Agotado</span>' : `📦 Stock: ${i.stock} unidades`}
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
+                                <span style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">$${i.precio || '0.00'}</span>
+                                <button onclick="buyItem(${i.id})" 
+                                    class="btn-add" 
+                                    ${outOfStock ? 'disabled style="background: #cbd5e1; cursor: not-allowed;"' : ''}
+                                    style="padding: 0.6rem 1.2rem;">
+                                    ${outOfStock ? 'Sin Stock' : 'Comprar'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) { console.error(e); }
+        }
+
+        async function buyItem(itemId) {
+            const r = await Swal.fire({
+                title: '¿Confirmar compra?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar Pedido',
+                cancelButtonText: 'Cancelar'
+            });
+            if (r.isConfirmed) {
+                const res = await fetch('/api/shop/buy', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ itemId })
+                });
+                if (res.ok) Swal.fire('¡Gracias por tu compra!', 'Recibirás un correo con los detalles.', 'success');
+            }
+        }
+
+        async function loadPurchases() {
+            const res = await fetch('/api/shop/my-purchases', { headers: { 'Authorization': `Bearer ${token}` } });
+            const data = await res.json();
+            document.getElementById('purchases-table-body').innerHTML = data.map(v => `
+                <tr>
+                    <td>${v.nombre}</td>
+                    <td style="font-weight: 700;">$${v.precio}</td>
+                    <td>${new Date(v.fecha).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadProfile() {
+            const res = await fetch('/api/auth/profile', { headers: { 'Authorization': `Bearer ${token}` } });
+            const user = await res.json();
+            document.getElementById('p-nombre').value = user.nombre || '';
+            document.getElementById('p-telefono').value = user.telefono || '';
+            document.getElementById('welcome-name').textContent = user.nombre || user.username;
+            document.getElementById('user-name').textContent = user.nombre || user.username;
+            if (user.foto) {
+                document.getElementById('profile-img-preview').src = user.foto;
+                document.getElementById('user-img-small').src = user.foto;
+                document.getElementById('user-img-small').style.display = 'block';
+            } else {
+                document.getElementById('profile-img-preview').src = 'https://ui-avatars.com/api/?name=' + user.username;
+            }
+        }
+
+        loadItems();
+        loadProfile();
+    </script>
+</body>
+</html>

@@ -1,3 +1,4 @@
+const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
@@ -10,11 +11,44 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    req.user = decoded; // Contiene id, username, role_name
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Token inválido o expirado' });
   }
 };
 
-module.exports = { verifyToken };
+const hasPermission = (permissionSlug) => {
+  return async (req, res, next) => {
+    try {
+      // 1. Obtener el role_id del usuario desde la DB (fuente de verdad)
+      const [userRows] = await pool.execute('SELECT id_roles FROM users WHERE id = ?', [req.user.id]);
+      
+      if (userRows.length === 0) {
+        return res.status(401).json({ message: 'Usuario no encontrado' });
+      }
+
+      const userRoleId = userRows[0].id_roles;
+
+      // 2. Verificar si ese rol tiene el permiso solicitado
+      const [permRows] = await pool.execute(`
+        SELECT p.slug 
+        FROM permisos p
+        JOIN role_permisos rp ON p.id = rp.permiso_id
+        WHERE rp.role_id = ? AND p.slug = ?
+      `, [userRoleId, permissionSlug]);
+
+      if (permRows.length === 0) {
+        console.log(`⛔ Acceso denegado: Usuario ${req.user.username} (Rol ID: ${userRoleId}) no tiene permiso '${permissionSlug}'`);
+        return res.status(403).json({ message: `No tienes el permiso necesario: ${permissionSlug}` });
+      }
+
+      next();
+    } catch (error) {
+      console.error('❌ Error en middleware de permisos:', error);
+      res.status(500).json({ message: 'Error interno de seguridad', error: error.message });
+    }
+  };
+};
+
+module.exports = { verifyToken, hasPermission };

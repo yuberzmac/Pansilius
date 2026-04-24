@@ -34,5 +34,7 @@ app.get('/', (req, res) => {
 // Rutas
 app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/items', require('./routes/items.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/shop', require('./routes/shop.routes'));
 
 module.exports = app;

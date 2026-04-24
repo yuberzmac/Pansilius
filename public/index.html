@@ -65,7 +65,15 @@
 
     <script>
         // Redirigir si ya hay token
-        if (localStorage.getItem('token')) window.location.href = '/menupanel.html';
+        const savedToken = localStorage.getItem('token');
+        const savedRole = localStorage.getItem('role');
+        if (savedToken) {
+            if (savedRole === 'admin') {
+                window.location.href = '/menupanel.html';
+            } else {
+                window.location.href = '/tienda.html';
+            }
+        }
 
         function toggleAuth(isLogin) {
             document.getElementById('login-form').classList.toggle('hidden', !isLogin);
@@ -108,7 +116,14 @@
                 if (res.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('username', username);
-                    window.location.href = '/menupanel.html';
+                    localStorage.setItem('role', data.role);
+                    
+                    // Redirección profesional según el rol
+                    if (data.role === 'admin') {
+                        window.location.href = '/menupanel.html';
+                    } else {
+                        window.location.href = '/tienda.html';
+                    }
                 } else {
                     Swal.fire('Atención', data.message, 'error');
                 }

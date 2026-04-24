@@ -17,6 +17,8 @@
                 <h2 style="font-size: 1.25rem; color: white;">Pansilius</h2>
             </div>
             <div id="nav-dashboard" class="nav-item active" onclick="toggleView('dashboard')">Dashboard</div>
+            <div id="nav-purchases" class="nav-item" onclick="toggleView('purchases')">Mis Compras</div>
+            <div id="nav-users" class="nav-item hidden" onclick="toggleView('users')">Usuarios</div>
             <div id="nav-profile" class="nav-item" onclick="toggleView('profile')">Perfil</div>
             <div class="nav-item" onclick="Swal.fire('Reportes', 'Función en desarrollo', 'info')">Reportes</div>
             <div style="margin-top: auto;">
@@ -35,6 +37,7 @@
                     <div class="user-profile">
                         <img id="user-img-small" src="" alt="" class="user-avatar" style="display:none;">
                         <span id="user-name" style="font-weight: 600;">Usuario</span>
+                        <span id="user-role-badge" class="badge badge-active" style="margin-left: 10px; font-size: 0.7rem;">User</span>
                     </div>
                 </header>
 
@@ -53,13 +56,64 @@
                     </div>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div id="admin-actions-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                     <h2 style="margin: 0;">Mis Productos</h2>
-                    <button onclick="showModal(true)" class="btn-add">+ Añadir Producto</button>
+                    <button id="btn-add-item" onclick="showModal(true)" class="btn-add hidden">+ Añadir Producto</button>
                 </div>
 
                 <div id="product-container" class="product-grid">
                     <!-- Se llena dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Users View (Admin Only) -->
+            <div id="view-users" class="hidden">
+                <header class="top-bar">
+                    <div>
+                        <h1 style="font-size: 1.75rem;">Gestión de Usuarios</h1>
+                        <p style="color: var(--text-gray);">Administra los permisos y roles de la plataforma.</p>
+                    </div>
+                </header>
+
+                <div class="stat-card">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th style="padding: 1rem;">Usuario</th>
+                                <th style="padding: 1rem;">Nombre</th>
+                                <th style="padding: 1rem;">Rol</th>
+                                <th style="padding: 1rem;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Purchases View -->
+            <div id="view-purchases" class="hidden">
+                <header class="top-bar">
+                    <div>
+                        <h1 style="font-size: 1.75rem;">Mis Compras</h1>
+                        <p style="color: var(--text-gray);">Historial de productos adquiridos.</p>
+                    </div>
+                </header>
+
+                <div class="stat-card">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--border);">
+                                <th style="padding: 1rem;">Producto</th>
+                                <th style="padding: 1rem;">Precio</th>
+                                <th style="padding: 1rem;">Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody id="purchases-table-body">
+                            <!-- Se llena dinámicamente -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
@@ -120,6 +174,14 @@
                 <input type="text" id="i-desc" placeholder="Breve descripción">
             </div>
             <div class="form-group">
+                <label>Precio ($)</label>
+                <input type="number" id="i-precio" placeholder="0.00" step="0.01">
+            </div>
+            <div class="form-group">
+                <label>Stock Disponible</label>
+                <input type="number" id="i-stock" placeholder="unidades">
+            </div>
+            <div class="form-group">
                 <label>Estado</label>
                 <select id="i-estado">
                     <option value="true">Activo</option>
@@ -135,16 +197,84 @@
 
     <script>
         const token = localStorage.getItem('token');
-        if (!token) window.location.href = '/index.html';
+        const role = localStorage.getItem('role');
+
+        if (!token) {
+            window.location.href = '/index.html';
+        } else if (role !== 'admin') {
+            window.location.href = '/tienda.html';
+        }
+
+        // Configuración inicial de la interfaz
+        if (role === 'admin') {
+            document.getElementById('nav-users').classList.remove('hidden');
+            document.getElementById('btn-add-item').classList.remove('hidden');
+            const badge = document.getElementById('user-role-badge');
+            badge.textContent = 'Admin';
+            badge.classList.replace('badge-active', 'badge-admin');
+        }
 
         let editingId = null;
 
         function toggleView(view) {
             document.getElementById('view-dashboard').classList.toggle('hidden', view !== 'dashboard');
+            document.getElementById('view-users').classList.toggle('hidden', view !== 'users');
             document.getElementById('view-profile').classList.toggle('hidden', view !== 'profile');
+            document.getElementById('view-purchases').classList.toggle('hidden', view !== 'purchases');
+            
             document.getElementById('nav-dashboard').classList.toggle('active', view === 'dashboard');
+            document.getElementById('nav-users').classList.toggle('active', view === 'users');
             document.getElementById('nav-profile').classList.toggle('active', view === 'profile');
+            document.getElementById('nav-purchases').classList.toggle('active', view === 'purchases');
+            
             if (view === 'profile') loadProfile();
+            if (view === 'users') loadUsers();
+            if (view === 'purchases') loadPurchases();
+        }
+
+        async function buyItem(itemId) {
+            const r = await Swal.fire({
+                title: '¿Confirmar compra?',
+                text: "El producto se añadirá a tu historial",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                confirmButtonText: 'Sí, comprar ahora'
+            });
+
+            if (r.isConfirmed) {
+                try {
+                    const res = await fetch('/api/shop/buy', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ itemId })
+                    });
+                    if (res.ok) {
+                        Swal.fire('¡Éxito!', 'Compra realizada correctamente', 'success');
+                    } else {
+                        const d = await res.json();
+                        Swal.fire('Error', d.message, 'error');
+                    }
+                } catch (e) { Swal.fire('Error', 'Fallo al procesar compra', 'error'); }
+            }
+        }
+
+        async function loadPurchases() {
+            try {
+                const res = await fetch('/api/shop/my-purchases', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const body = document.getElementById('purchases-table-body');
+                body.innerHTML = data.map(v => `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1rem;">${v.nombre}</td>
+                        <td style="padding: 1rem; font-weight: 700;">$${v.precio}</td>
+                        <td style="padding: 1rem;">${new Date(v.fecha).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Error al cargar compras'); }
         }
 
         function showModal(show, item = null) {
@@ -154,6 +284,8 @@
             
             document.getElementById('i-nombre').value = item ? item.nombre : '';
             document.getElementById('i-desc').value = item ? (item.descripcion || '') : '';
+            document.getElementById('i-precio').value = item ? item.precio : '';
+            document.getElementById('i-stock').value = item ? item.stock : '';
             document.getElementById('i-estado').value = item ? item.estado.toString() : 'true';
             
             document.getElementById('item-modal').style.display = show ? 'flex' : 'none';
@@ -175,25 +307,106 @@
                 document.getElementById('stat-inactive').textContent = items.filter(i => !i.estado).length;
 
                 const container = document.getElementById('product-container');
-                container.innerHTML = items.map(i => `
-                    <div class="product-card">
-                        <span class="badge ${i.estado ? 'badge-active' : 'badge-inactive'}" style="position: absolute; top: 1.5rem; right: 1.5rem;">
-                            ${i.estado ? 'Activo' : 'Inactivo'}
-                        </span>
-                        <div class="p-name">${i.nombre}</div>
-                        <div class="p-desc">${i.descripcion || 'Sin descripción'}</div>
+                container.innerHTML = items.map(i => {
+                    const adminButtons = role === 'admin' ? `
                         <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
                             <button onclick='showModal(true, ${JSON.stringify(i).replace(/'/g, "&apos;")})' class="btn-add" style="padding: 0.6rem 1rem; font-size: 0.85rem; flex: 1;">Editar</button>
                             <button onclick="deleteItem(${i.id})" class="danger" style="flex: 1;">Eliminar</button>
                         </div>
-                    </div>
-                `).join('');
+                    ` : `
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                            <button onclick='buyItem(${i.id})' class="btn-add" style="width: 100%;">Comprar por $${i.precio || 0}</button>
+                        </div>
+                    `;
+
+                    return `
+                        <div class="product-card">
+                            <span class="badge ${i.estado ? 'badge-active' : 'badge-inactive'}" style="position: absolute; top: 1.5rem; right: 1.5rem;">
+                                ${i.estado ? 'Activo' : 'Inactivo'}
+                            </span>
+                            <div class="p-name">${i.nombre}</div>
+                            <div class="p-desc">${i.descripcion || 'Sin descripción'}</div>
+                            <div style="font-weight: 800; color: var(--primary); font-size: 1.2rem;">$${i.precio || 0}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;">📦 Stock: ${i.stock} unidades</div>
+                            ${adminButtons}
+                        </div>
+                    `;
+                }).join('');
             } catch (e) { console.error('Error al cargar items'); }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) return;
+                const users = await res.json();
+                
+                const body = document.getElementById('users-table-body');
+                body.innerHTML = users.map(u => `
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1rem;">${u.username}</td>
+                        <td style="padding: 1rem;">${u.nombre || '-'}</td>
+                        <td style="padding: 1rem;">
+                            <select onchange="updateUserRole(${u.id}, this.value)" style="padding: 0.4rem; border-radius: 8px; border: 1px solid var(--border);">
+                                <option value="user" ${u.role === 'user' ? 'selected' : ''}>Usuario</option>
+                                <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td style="padding: 1rem;">
+                            <button onclick="deleteUser(${u.id})" class="danger" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Eliminar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) { console.error('Error al cargar usuarios'); }
+        }
+
+        async function updateUserRole(userId, newRole) {
+            try {
+                const res = await fetch('/api/admin/users/role', {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ userId, role: newRole })
+                });
+                if (res.ok) {
+                    Swal.fire('Éxito', 'Rol actualizado', 'success');
+                } else {
+                    const d = await res.json();
+                    Swal.fire('Error', d.message, 'error');
+                }
+            } catch (e) { Swal.fire('Error', 'Fallo al actualizar rol', 'error'); }
+        }
+
+        async function deleteUser(id) {
+            const r = await Swal.fire({ 
+                title: '¿Eliminar usuario?', 
+                text: "Esto eliminará permanentemente al usuario",
+                icon: 'warning', 
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444'
+            });
+            if (r.isConfirmed) {
+                const res = await fetch(`/api/admin/users/${id}`, { 
+                    method: 'DELETE', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+                if (res.ok) {
+                    loadUsers();
+                    Swal.fire('Eliminado', 'Usuario borrado', 'success');
+                } else {
+                    const d = await res.json();
+                    Swal.fire('Error', d.message, 'error');
+                }
+            }
         }
 
         async function saveItem() {
             const nombre = document.getElementById('i-nombre').value;
             const descripcion = document.getElementById('i-desc').value;
+            const precio = document.getElementById('i-precio').value;
+            const stock = document.getElementById('i-stock').value;
             const estado = document.getElementById('i-estado').value === 'true';
 
             const method = editingId ? 'PUT' : 'POST';
@@ -203,7 +416,7 @@
                 const res = await fetch(url, {
                     method: method,
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ nombre, descripcion, estado })
+                    body: JSON.stringify({ nombre, descripcion, precio, stock, estado })
                 });
                 if (res.ok) {
                     showModal(false);

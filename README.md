@@ -1,120 +1,103 @@
-# 🛡️ Pansilius Pro | Enterprise Inventory Management System
+# 🛡️ Pansilius Pro | Sistema de Gestión Empresarial Avanzado
 
-![Status](https://img.shields.io/badge/Status-Production--Ready-success?style=for-the-badge)
-![Security](https://img.shields.io/badge/Security-SSL%20%2F%20JWT-blue?style=for-the-badge)
-![Maintained](https://img.shields.io/badge/Maintained-Yes-orange?style=for-the-badge)
+![Estado](https://img.shields.io/badge/Status-Producción-success?style=for-the-badge)
+![Seguridad](https://img.shields.io/badge/Seguridad-RBAC%20%2F%20JWT-blue?style=for-the-badge)
+![Versión](https://img.shields.io/badge/Versión-2.8%20PRO-orange?style=for-the-badge)
 
-Pansilius Pro is a professional-grade backend solution for real-time inventory control. Engineered with **Node.js 20**, **Express 5**, and **MySQL**, it provides a secure, scalable, and high-performance environment for administrative operations.
+Pansilius Pro es una solución integral de backend para el control de inventarios y ventas en tiempo real. Desarrollado con un enfoque en la seguridad granular y la escalabilidad, el sistema permite una administración total de recursos, empleados y transacciones comerciales.
 
 ---
 
-## 🌐 Production Infrastructure
+## 🚀 Funcionalidades Principales
 
-The system is deployed using a professional-tier architecture:
+### 🔐 Seguridad y Control de Acceso (RBAC Avanzado)
+- **Permisos Granulares:** Sistema basado en "chips" de permisos (`hasPermission`). Los roles no son estáticos; puedes activar o desactivar funciones específicas (crear, editar, borrar, comprar, ver reportes) para cualquier rango.
+- **Jerarquía de Roles:** Soporte para múltiples niveles (Admin, Usuario, Supervisor, etc.) creados dinámicamente.
+- **Autenticación Robusta:** JWT (JSON Web Tokens) con una duración de 24 horas y encriptación Bcrypt para contraseñas.
 
-| Component | URL / Endpoint | Purpose |
+### 📦 Motor de Inventario y Stock
+- **Control de Stock Real:** El sistema descuenta automáticamente unidades del inventario tras cada compra exitosa.
+- **Estados Automáticos:** Los productos se marcan como "Agotado" visualmente cuando el stock llega a cero, bloqueando nuevas ventas.
+- **Gestión de Precios:** Soporte para valores decimales y descripciones detalladas.
+
+### 🛒 Experiencia de Usuario (Tienda)
+- **Interfaz de Cliente:** Vista dedicada (`tienda.html`) donde el usuario solo ve productos activos y disponibles.
+- **Historial de Compras:** Cada usuario tiene acceso a su lista de tickets y transacciones realizadas.
+
+### 💻 Pansilius Command Center (CLI v2.8 PRO)
+Una terminal interactiva y guiada para la administración total del negocio:
+- **`login` / `register`**: Acceso y creación de cuentas asistida paso a paso.
+- **`ls` / `list`**: Visualización de inventario con tablas ASCII profesionales.
+- **`buy`**: Asistente de compra rápido que muestra el catálogo antes de pedir el ID.
+- **`edit`**: Menú interactivo para modificar nombre, precio, stock o estado sin comandos complejos.
+- **`perms`**: Centro de control de seguridad para activar/desactivar permisos por rol.
+- **`reports`**: Auditoría financiera que calcula el balance total de ventas y muestra el detalle por cliente.
+
+---
+
+## 🌐 Infraestructura y Despliegue
+
+| Componente | Dirección | Propósito |
 | :--- | :--- | :--- |
-| **Pansilius Web** | [https://git.minecraft17.online](https://git.minecraft17.online) | Main Dashboard & User Authentication |
-| **Database Admin**| [https://minecraft17.online](https://minecraft17.online) | phpMyAdmin Interface (DB Management) |
-| **API Base URL**  | `https://git.minecraft17.online/api` | RESTful Endpoint for external integrations |
+| **Pansilius Web** | [https://git.minecraft17.online](https://git.minecraft17.online) | Panel de Control y Tienda |
+| **Admin DB**| [https://minecraft17.online](https://minecraft17.online) | Gestión de Base de Datos (phpMyAdmin) |
+| **Gitea Server** | [136.248.245.181:3002](http://136.248.245.181:3002) | Repositorio privado de código |
 
 ---
 
-## 🚀 Key Features
-
-### 🔐 Advanced Security
-- **JWT Authorization:** Stateless authentication using JSON Web Tokens.
-- **Bcrypt Hashing:** Industry-standard password encryption.
-- **Protected Routes:** Middleware-level access control for all sensitive operations.
-- **SSL Termination:** Automatic HTTPS enforcement via Nginx and Let's Encrypt.
-
-### 📦 Inventory Engine
-- **Full CRUD:** Create, Read, Update, and Delete items with real-time validation.
-- **Asset Management:** Integrated file uploading system via Multer for product images.
-- **Relational Integrity:** Optimized MySQL schema for data consistency.
-
-### 💻 Pansilius CLI (Command Line Interface)
-A powerful terminal-based tool to manage the system without a browser:
-- `login <user> <pass>`: Authenticate and persist session locally.
-- `list`: View inventory in a formatted ASCII table.
-- `add "Name" "Description"`: Quick item insertion.
-- `delete <id>`: Instant removal of inventory records.
-- `profile`: Check current user session details.
+## 🛠️ Stack Tecnológico
+- **Backend:** Node.js 22 + Express 5
+- **Base de Datos:** MySQL 8 (Arquitectura relacional avanzada)
+- **Frontend:** HTML5, CSS3 (Glassmorphism & Plus Jakarta Sans), JavaScript (Vanilla)
+- **Herramientas:** Axios, Bcrypt, JWT, Multer, SweetAlert2
 
 ---
 
-## 🛠️ Technical Architecture
+## 🔌 Documentación de la API (Endpoints Críticos)
 
-```text
-                     [ Internet ]
-                          |
-                  [ Nginx Reverse Proxy ]
-                 (Port 80/443 - SSL Termination)
-                 /                  \
-    [ Pansilius App ]           [ Apache Server ]
-    (Port 3000 - Node.js)       (Port 8080 - phpMyAdmin)
-            \                       /
-             \---[ MySQL Server ]---/
-                  (Port 3306)
-```
+### Administración (`/api/admin`)
+- `GET /users`: Listar toda la plantilla de usuarios.
+- `PUT /users/role`: Cambiar el rango de un empleado.
+- `POST /roles`: Crear un nuevo rol jerárquico.
+- `POST /roles/toggle-permiso`: Conceder o revocar permisos específicos.
+- `GET /reports/sales`: Obtener balance total de ingresos.
+
+### Tienda y Compras (`/api/shop`)
+- `POST /buy`: Procesar compra y descontar stock.
+- `GET /my-purchases`: Obtener historial del usuario autenticado.
 
 ---
 
-## 🔌 API Documentation
+## 📥 Instalación Local
 
-### Authentication (`/auth`)
-- `POST /register`: Create new account (Supports multipart/form-data for profile photos).
-- `POST /login`: Returns JWT token on success.
-- `GET /profile`: (Protected) Returns logged-in user details.
-
-### Inventory (`/items`)
-- `GET /`: List all items.
-- `GET /:id`: Detailed view of a single item.
-- `POST /`: Add new item (JSON body: `nombre`, `descripcion`, `estado`).
-- `PUT /:id`: Update existing item.
-- `DELETE /:id`: Remove item from database.
-
----
-
-## 📥 Local Setup & Deployment
-
-1. **Clone & Install:**
+1. **Clonar Repositorio:**
    ```bash
    git clone https://github.com/yuberzmac/Pansilius.git
    cd Pansilius
    npm install
    ```
 
-2. **Environment Configuration (`.env`):**
+2. **Variables de Entorno (`.env`):**
    ```env
    PORT=3000
-   DB_HOST=localhost
+   DB_HOST=136.248.245.181
    DB_USER=mysql
-   DB_PASSWORD=123456
+   DB_PASSWORD=your_password
    DB_NAME=Pansilius
-   JWT_SECRET=your_secret_key
+   JWT_SECRET=tu_secreto_seguro
    ```
 
-3. **Running in Production (PM2):**
+3. **Ejecutar CLI:**
    ```bash
-   sudo npm install -g pm2
-   pm2 start src/index.js --name pansilius
-   pm2 save
-   pm2 startup
+   node cli.js
    ```
-
-## 🛡️ Maintenance & Logs
-To monitor the system in real-time:
-- **App Logs:** `pm2 logs pansilius`
-- **Nginx Status:** `sudo systemctl status nginx`
-- **Error Logs:** `tail -f /var/log/nginx/error.log`
 
 ---
-**Developed as a specialized Backend Implementation Project.**
+**Desarrollado como un Proyecto de Implementación Backend Profesional.**
 
-### ✅ Phase 2 - Finalized
-- [x] REST API Implementation
-- [x] Remote MySQL Integration
-- [x] JWT Authentication
-- [x] Dockerization ready
-
+### ✅ Fase 3 - Sincronizada
+- [x] Sistema de Permisos Granulares (RBAC)
+- [x] Control Automatizado de Stock
+- [x] Interfaz de Tienda para Clientes
+- [x] CLI v2.8 PRO con Reportes Financieros
+- [x] Documentación Completa en Español

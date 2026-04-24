@@ -78,11 +78,15 @@
                 <div class="stat-card" style="max-width: 600px; margin: 0 auto; text-align: center;">
                     <img id="profile-img-preview" src="" style="width: 120px; height: 120px; border-radius: 30px; object-fit: cover; margin-bottom: 1.5rem; border: 4px solid var(--primary);">
                     <form id="profile-form" style="text-align: left;">
+                        <label>Correo Electrónico</label>
+                        <input type="email" id="p-email">
                         <label>Nombre Completo</label>
                         <input type="text" id="p-nombre">
                         <label>Teléfono de contacto</label>
                         <input type="text" id="p-telefono">
-                        <button type="button" onclick="updateProfile()" class="btn-add" style="width: 100%;">Guardar Cambios</button>
+                        <label>Nueva Contraseña (opcional)</label>
+                        <input type="password" id="p-password" placeholder="Mínimo 6 caracteres">
+                        <button type="button" onclick="updateProfile()" class="btn-add" style="width: 100%; margin-top: 1rem;">Guardar Cambios</button>
                     </form>
                 </div>
             </div>
@@ -181,6 +185,7 @@
         async function loadProfile() {
             const res = await fetch('/api/auth/profile', { headers: { 'Authorization': `Bearer ${token}` } });
             const user = await res.json();
+            document.getElementById('p-email').value = user.email || '';
             document.getElementById('p-nombre').value = user.nombre || '';
             document.getElementById('p-telefono').value = user.telefono || '';
             document.getElementById('welcome-name').textContent = user.nombre || user.username;
@@ -190,8 +195,33 @@
                 document.getElementById('user-img-small').src = user.foto;
                 document.getElementById('user-img-small').style.display = 'block';
             } else {
-                document.getElementById('profile-img-preview').src = 'https://ui-avatars.com/api/?name=' + user.username;
+                document.getElementById('profile-img-preview').src = 'https://ui-avatars.com/api/?name=' + (user.nombre || user.username);
             }
+        }
+
+        async function updateProfile() {
+            const formData = new FormData();
+            formData.append('email', document.getElementById('p-email').value);
+            formData.append('nombre', document.getElementById('p-nombre').value);
+            formData.append('telefono', document.getElementById('p-telefono').value);
+            const pass = document.getElementById('p-password').value;
+            if (pass) formData.append('password', pass);
+            
+            try {
+                const res = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}` },
+                    body: formData
+                });
+                if (res.ok) {
+                    Swal.fire('Perfil Actualizado', 'Tus datos se han guardado correctamente', 'success');
+                    loadProfile();
+                    document.getElementById('p-password').value = '';
+                } else {
+                    const data = await res.json();
+                    Swal.fire('Error', data.message || 'No se pudo actualizar el perfil', 'error');
+                }
+            } catch (e) { Swal.fire('Error', 'Ocurrió un error inesperado', 'error'); }
         }
 
         loadItems();

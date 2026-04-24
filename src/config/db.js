@@ -24,20 +24,33 @@ const initDB = async () => {
     // 2. Permisos
     await connection.query(`CREATE TABLE IF NOT EXISTS permisos (id INT AUTO_INCREMENT PRIMARY KEY, slug VARCHAR(50) UNIQUE NOT NULL, descripcion VARCHAR(100))`);
     
-    // 3. Usuarios (Asegurar columna id_roles)
+    // 3. Usuarios (Asegurar columna id_roles y email)
     await connection.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY, 
         username VARCHAR(100) UNIQUE NOT NULL, 
+        email VARCHAR(150) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL, 
         nombre VARCHAR(100), 
         telefono VARCHAR(20), 
         foto TEXT, 
         id_roles INT DEFAULT 2, 
+        failed_attempts INT DEFAULT 0,
+        is_blocked BOOLEAN DEFAULT FALSE,
+        token_version INT DEFAULT 1,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
         FOREIGN KEY (id_roles) REFERENCES roles(id) ON DELETE SET NULL
       )
     `);
+
+    // Asegurar que existen las columnas de seguridad y versión de token
+    try { await connection.query('ALTER TABLE users ADD COLUMN failed_attempts INT DEFAULT 0 AFTER id_roles'); } catch (e) { }
+    try { await connection.query('ALTER TABLE users ADD COLUMN is_blocked BOOLEAN DEFAULT FALSE AFTER failed_attempts'); } catch (e) { }
+    try { await connection.query('ALTER TABLE users ADD COLUMN token_version INT DEFAULT 1 AFTER is_blocked'); } catch (e) { }
+    try {
+      await connection.query('ALTER TABLE users ADD COLUMN email VARCHAR(150) UNIQUE AFTER username');
+      console.log('✨ Columna "email" añadida con éxito.');
+    } catch (e) { }
 
     // 4. Role-Permisos
     await connection.query(`CREATE TABLE IF NOT EXISTS role_permisos (role_id INT, permiso_id INT, PRIMARY KEY(role_id, permiso_id), FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE, FOREIGN KEY(permiso_id) REFERENCES permisos(id) ON DELETE CASCADE)`);

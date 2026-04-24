@@ -61,7 +61,7 @@ const commands = {
     // --- SESIÓN ---
     async login(args) {
         let [username, password] = args;
-        if (!username) username = await ask('👤 Usuario:');
+        if (!username) username = await ask('👤 Usuario o Email:');
         if (!password) password = await ask('🔑 Contraseña:');
         try {
             const res = await axios.post(`${API_URL}/auth/login`, { username, password });
@@ -75,13 +75,17 @@ const commands = {
     async register() {
         console.log(`\n${colors.fg.cyan}📝 CREAR NUEVA CUENTA CORPORATIVA${colors.reset}`);
         const username = await ask('👤 Elija un nombre de usuario:');
+        const email = await ask('📧 Ingrese su correo electrónico:');
         const password = await ask('🔑 Defina una contraseña:');
         const nombre = await ask('📛 Nombre completo (opcional):');
-        if (!username || !password) return console.log(`${colors.fg.red}❌ Error: Datos incompletos.${colors.reset}`);
+        if (!username || !email || !password) return console.log(`${colors.fg.red}❌ Error: Datos incompletos (Usuario, Email y Clave son obligatorios).${colors.reset}`);
         try {
-            await axios.post(`${API_URL}/auth/register`, { username, password, nombre: nombre || null });
-            console.log(`\n${colors.bg.green}${colors.fg.white} SUCCESS ${colors.reset} ${colors.fg.green}✅ Cuenta creada. Inicia sesión para continuar.${colors.reset}\n`);
-        } catch (e) { console.error(`${colors.fg.red}❌ Error al registrar.${colors.reset}`); }
+            await axios.post(`${API_URL}/auth/register`, { username, email, password, nombre: nombre || null });
+            console.log(`\n${colors.bg.green}${colors.fg.white} SUCCESS ${colors.reset} ${colors.fg.green}✅ Cuenta creada. Inicia sesión con tu usuario o email.${colors.reset}\n`);
+        } catch (e) { 
+            const msg = e.response?.data?.message || 'Fallo al registrar';
+            console.error(`${colors.fg.red}❌ Error: ${msg}${colors.reset}`); 
+        }
     },
 
     async profile() {
@@ -194,8 +198,32 @@ const commands = {
         try {
             const res = await getClient().get('/admin/users');
             console.log(`\n${colors.bright}${colors.fg.cyan}👥 PLANTILLA DE USUARIOS${colors.reset}`);
-            console.table(res.data.map(u => ({ ID: u.id, Usuario: u.username, Nombre: u.nombre || '-', Rango: u.role.toUpperCase() })));
+            console.table(res.data.map(u => ({ 
+                ID: u.id, 
+                Usuario: u.username, 
+                Email: u.email || '-',
+                Rango: u.role.toUpperCase(),
+                Status: u.is_blocked ? '❌ BLOQUEADO' : '✅ ACTIVO'
+            })));
         } catch (e) { console.error(`${colors.fg.red}❌ Error.${colors.reset}`); }
+    },
+
+    async unblock() {
+        if (getAuth().role !== 'admin') return console.log(`${colors.fg.red}⛔ Acceso denegado.${colors.reset}`);
+        const userId = await ask('👤 ID del Usuario a desbloquear:');
+        try {
+            await getClient().post(`/admin/users/${userId}/unblock`);
+            console.log(`${colors.fg.green}✅ Usuario desbloqueado. Ya puede volver a intentar el acceso.${colors.reset}`);
+        } catch (e) { console.error(`${colors.fg.red}❌ Error al desbloquear.${colors.reset}`); }
+    },
+
+    async kick() {
+        if (getAuth().role !== 'admin') return console.log(`${colors.fg.red}⛔ Acceso denegado.${colors.reset}`);
+        const userId = await ask('👤 ID del Usuario a expulsar (Cerrar sesión):');
+        try {
+            await getClient().post(`/admin/users/${userId}/kick`);
+            console.log(`${colors.fg.green}✅ Sesión invalidada. El usuario será expulsado en su próxima acción.${colors.reset}`);
+        } catch (e) { console.error(`${colors.fg.red}❌ Error al expulsar.${colors.reset}`); }
     },
 
     async setrole() {
@@ -284,6 +312,8 @@ const commands = {
             console.log(`  delete      - Eliminar producto`);
             console.log(`  users       - Listar personal/clientes`);
             console.log(`  setrole     - Asignar rango a un usuario`);
+            console.log(`  unblock     - Desbloquear cuenta de usuario`);
+            console.log(`  kick        - Expulsar usuario (Cerrar sesión remota)`);
             console.log(`  addrole     - Crear un nuevo rango (Rol)`);
             console.log(`  perms       - GESTIONAR PERMISOS (Granular)`);
             console.log(`  reports     - Auditoría de ventas`);

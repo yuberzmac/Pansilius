@@ -1,7 +1,7 @@
 const pool = require('../config/db');
 const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -10,8 +10,16 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // Contiene id, username, role_name
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'tu_secreto_seguro');
+    
+    // VERIFICACIÓN DE SESIÓN ACTIVA (Force Logout check)
+    const [userRows] = await pool.execute('SELECT token_version FROM users WHERE id = ?', [decoded.id]);
+    
+    if (userRows.length === 0 || userRows[0].token_version !== decoded.version) {
+      return res.status(401).json({ message: 'Sesión invalidada o cerrada remotamente' });
+    }
+
+    req.user = decoded;
     next();
   } catch (error) {
     return res.status(403).json({ message: 'Token inválido o expirado' });

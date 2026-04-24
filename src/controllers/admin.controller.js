@@ -3,7 +3,7 @@ const pool = require('../config/db');
 const getAllUsers = async (req, res) => {
   try {
     const [rows] = await pool.execute(`
-      SELECT u.id, u.username, u.nombre, u.telefono, r.nombre as role, u.created_at 
+      SELECT u.id, u.username, u.email, u.nombre, u.telefono, r.nombre as role, u.is_blocked, u.created_at 
       FROM users u 
       JOIN roles r ON u.id_roles = r.id
     `);
@@ -68,8 +68,28 @@ const deleteUser = async (req, res) => {
   }
 };
 
-const getAllPermissions = async (req, res) => {
+const unblockUser = async (req, res) => {
   try {
+    const { id } = req.params;
+    await pool.execute('UPDATE users SET is_blocked = FALSE, failed_attempts = 0 WHERE id = ?', [id]);
+    res.json({ message: 'Usuario desbloqueado con éxito' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al desbloquear usuario', error: error.message });
+  }
+};
+
+const forceLogout = async (req, res) => {
+  try {
+    const { id } = req.params;
+    // Incrementar la versión del token invalida todos los tokens actuales de ese usuario
+    await pool.execute('UPDATE users SET token_version = token_version + 1 WHERE id = ?', [id]);
+    res.json({ message: 'Sesión cerrada remotamente con éxito' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error al cerrar sesión remotamente', error: error.message });
+  }
+};
+
+const getAllPermissions = async (req, res) => {  try {
     const [rows] = await pool.execute('SELECT * FROM permisos');
     res.json(rows);
   } catch (error) {
@@ -110,4 +130,4 @@ const togglePermission = async (req, res) => {
   }
 };
 
-module.exports = { getAllUsers, getAllRoles, updateUserRole, createRole, deleteUser, getAllPermissions, getRolePermissions, togglePermission };
+module.exports = { getAllUsers, getAllRoles, updateUserRole, createRole, deleteUser, unblockUser, forceLogout, getAllPermissions, getRolePermissions, togglePermission };

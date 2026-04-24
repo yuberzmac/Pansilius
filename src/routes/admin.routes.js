@@ -10,6 +10,8 @@ router.get('/users', hasPermission('user:view'), adminController.getAllUsers);
 router.get('/roles/list', hasPermission('user:manage'), adminController.getAllRoles);
 router.put('/users/role', hasPermission('user:manage'), adminController.updateUserRole);
 router.delete('/users/:id', hasPermission('user:manage'), adminController.deleteUser);
+router.post('/users/:id/unblock', hasPermission('user:manage'), adminController.unblockUser);
+router.post('/users/:id/kick', hasPermission('user:manage'), adminController.forceLogout);
 router.post('/roles', hasPermission('user:manage'), adminController.createRole);
 router.get('/permisos', hasPermission('user:manage'), adminController.getAllPermissions);
 router.get('/roles/:roleId/permisos', hasPermission('user:manage'), adminController.getRolePermissions);

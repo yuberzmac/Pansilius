@@ -25,8 +25,8 @@
         <!-- Formulario de Entrada -->
         <div id="login-form">
             <div class="form-group">
-                <label>Nombre de usuario</label>
-                <input type="text" id="l-user" placeholder="ej. admin">
+                <label>Usuario o Email</label>
+                <input type="text" id="l-user" placeholder="ej. yuber o yuber@email.com">
             </div>
             <div class="form-group">
                 <label>Contraseña</label>
@@ -38,8 +38,12 @@
         <!-- Formulario de Registro -->
         <div id="register-form" class="hidden">
             <div class="form-group">
-                <label>Usuario *</label>
+                <label>Usuario corporativo *</label>
                 <input type="text" id="r-user" placeholder="ej. yuberz">
+            </div>
+            <div class="form-group">
+                <label>Correo Electrónico *</label>
+                <input type="email" id="r-email" placeholder="ej. contacto@empresa.com">
             </div>
             <div class="form-group">
                 <label>Nombre completo</label>
@@ -135,6 +139,7 @@
         async function register() {
             const formData = new FormData();
             formData.append('username', document.getElementById('r-user').value);
+            formData.append('email', document.getElementById('r-email').value);
             formData.append('password', document.getElementById('r-pass').value);
             formData.append('nombre', document.getElementById('r-name').value);
             if (fileInp.files[0]) formData.append('foto', fileInp.files[0]);

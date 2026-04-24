@@ -1,129 +1,76 @@
-# Pansilius Pro | API Backend de Gestión de Inventario
+# Pansilius Pro | Sistema de Gestión de Inventario
 
-Este proyecto consiste en una plataforma administrativa integral desarrollada con **Node.js, Express y MySQL**. La aplicación permite la gestión de productos, perfiles de usuario con seguridad avanzada, y cuenta con una interfaz web dinámica y una potente línea de comandos (CLI).
+![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-005C84?style=for-the-badge&logo=mysql&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white)
 
-Esta versión corresponde a la **Fase 2**, que incluye integración con base de datos MySQL remota, autenticación JWT, protección de rutas y contenerización con Docker.
+Pansilius Pro es una plataforma administrativa integral para la gestión de productos y usuarios. Cuenta con una API REST robusta, seguridad avanzada con JWT y una interfaz de línea de comandos (CLI) personalizada.
+
+## 🌐 Accesos en Producción
+
+El sistema está desplegado y protegido con certificados SSL (HTTPS):
+
+- **Panel de Control (App):** [https://git.minecraft17.online](https://git.minecraft17.online)
+- **Base de Datos (phpMyAdmin):** [https://minecraft17.online](https://minecraft17.online)
 
 ## 🚀 Características Principales
 
-- **API RESTful:** Endpoints para gestión de productos y usuarios con respuestas en formato JSON.
-- **Autenticación Segura:** Registro e inicio de sesión protegidos mediante encriptación (bcryptjs) y tokens de acceso (JWT).
-- **Protección de Rutas:** Middleware de seguridad para asegurar que solo usuarios autenticados realicen cambios en el inventario.
-- **Base de Datos Remota:** Conexión optimizada para trabajar con servicios MySQL en la nube.
-- **Pansilius CLI:** Consola interactiva personalizada para controlar el sistema directamente desde la terminal.
-- **Docker Ready:** Configuración completa para desplegar la aplicación en contenedores aislados.
-
-## 🛠️ Requisitos del Entorno
-
-- **Node.js:** v18 o superior.
-- **MySQL:** Base de datos remota activa con puerto 3306 abierto.
-- **Docker:** Instalado y configurado (opcional para despliegue).
-
-## 📥 Instalación y Configuración
-
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/tu-usuario/Pansilius.git
-   cd Pansilius
-   ```
-
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar variables de entorno:**
-   Crea un archivo `.env` en la raíz del proyecto basándote en el archivo `.env.example`:
-   ```env
-   PORT=3000
-   DB_HOST=tu_host_remoto
-   DB_USER=tu_usuario
-   DB_PASSWORD=tu_password
-   DB_NAME=tu_base_de_datos
-   DB_PORT=3306
-   JWT_SECRET=tu_secreto_seguro
-   ```
-
-## 🗄️ Estructura de la Base de Datos
-
-La API utiliza dos tablas principales. Si no existen, el sistema las creará automáticamente al iniciar el servidor:
-
-- **users:** Almacena credenciales, nombres, teléfonos y fotos de perfil.
-- **items:** Gestiona el inventario (id, nombre, descripción, estado, fecha de creación).
-
-## 🔌 Documentación de la API
-
-### Autenticación
-| Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `POST` | `/api/auth/register` | Registro de nuevos usuarios (acepta imagen/multipart). |
-| `POST` | `/api/auth/login` | Inicio de sesión y generación de Token JWT. |
-
-### CRUD de Items (Rutas Protegidas)
-| Método | Ruta | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/api/items` | Listar todos los productos. |
-| `GET` | `/api/items/:id` | Obtener detalles de un producto específico. |
-| `POST` | `/api/items` | Crear un nuevo producto. |
-| `PUT` | `/api/items/:id` | Actualizar información de un producto. |
-| `DELETE` | `/api/items/:id` | Eliminar un producto del sistema. |
+- **API RESTful:** Gestión completa de productos y usuarios.
+- **Autenticación Segura:** Encriptación con `bcryptjs` y protección de rutas mediante `JWT`.
+- **Arquitectura de Producción:** 
+  - **Proxy Inverso:** Nginx gestionando el tráfico HTTPS.
+  - **Gestor de Procesos:** PM2 para garantizar alta disponibilidad (auto-restart).
+  - **SSL:** Certificados automáticos con Let's Encrypt.
+- **Pansilius CLI:** Control total desde la terminal.
 
 ## 💻 Pansilius CLI
 
-Controla el backend desde la terminal:
+La herramienta de consola permite interactuar con la API sin usar el navegador.
 
-1. **Vincular comando globalmente:**
-   ```bash
-   npm link
-   ```
-2. **Iniciar consola interactiva:**
-   ```bash
-   pansilius
-   ```
-3. **Comandos disponibles:** `login`, `list`, `add`, `delete`, `profile`, `exit`.
+### Instalación
+```bash
+sudo npm link
+```
 
-## 🐳 Despliegue con Docker
+### Comandos
+- `login <user> <pass>`: Iniciar sesión y guardar token.
+- `list`: Ver tabla de productos.
+- `add <nombre> <desc>`: Crear nuevo ítem.
+- `delete <id>`: Eliminar ítem por ID.
+- `profile`: Ver datos del usuario actual.
 
-### Opción 1: Usando Docker Compose (Recomendado)
-Docker Compose facilita la gestión de volúmenes para que las imágenes subidas no se pierdan al reiniciar el contenedor.
+## 🛠️ Tecnologías Utilizadas
 
-1. **Iniciar la aplicación:**
-   ```bash
-   docker-compose up -d --build
-   ```
-
-2. **Detener la aplicación:**
-   ```bash
-   docker-compose down
-   ```
-
-### Opción 2: Usando Docker CLI
-1. **Construir la imagen:**
-   ```bash
-   docker build -t backend-api .
-   ```
-
-2. **Ejecutar el contenedor:**
-   ```bash
-   docker run -p 3000:3000 --env-file .env -v ${PWD}/uploads:/app/uploads backend-api
-   ```
+- **Backend:** Node.js, Express.
+- **Base de Datos:** MySQL.
+- **Servidor Web:** Nginx (Proxy) & Apache (phpMyAdmin).
+- **Seguridad:** JWT, BcryptJS, Certbot (SSL).
 
 ## 📂 Estructura del Proyecto
 
 ```text
 ├── src/
-│   ├── config/      # Configuración de base de datos
-│   ├── controllers/ # Lógica de negocio (Auth e Items)
-│   ├── middleware/  # Seguridad y JWT
-│   ├── routes/      # Definición de endpoints
-│   ├── app.js       # Configuración de Express
-│   └── index.js     # Punto de entrada del servidor
-├── public/          # Interfaz Web (Dashboard y Login)
-├── uploads/         # Almacenamiento local de archivos
+│   ├── config/      # Conexión a DB
+│   ├── controllers/ # Lógica de negocio
+│   ├── middleware/  # Verificación de JWT
+│   ├── routes/      # Endpoints de la API
+│   ├── app.js       # Configuración Express
+│   └── index.js     # Arranque del servidor
+├── public/          # Frontend Web
 ├── cli.js           # Motor de Pansilius CLI
-├── Dockerfile       # Configuración de imagen Docker
-└── .env.example     # Plantilla de configuración
+└── uploads/         # Almacenamiento de imágenes
+```
+
+## ⚙️ Configuración del Entorno (.env)
+```env
+PORT=3000
+DB_HOST=localhost
+DB_USER=tu_usuario
+DB_PASSWORD=tu_password
+DB_NAME=pansilius_db
+JWT_SECRET=tu_secreto_super_seguro
 ```
 
 ---
-**Desarrollado como parte del curso de Implementación de API Backend con Node.js.**
+**Desarrollado como proyecto de implementación de API Backend.**

@@ -84,8 +84,20 @@ Controla el backend desde la terminal:
 
 ## 🐳 Despliegue con Docker
 
-Sigue estos pasos para ejecutar la aplicación dentro de un contenedor:
+### Opción 1: Usando Docker Compose (Recomendado)
+Docker Compose facilita la gestión de volúmenes para que las imágenes subidas no se pierdan al reiniciar el contenedor.
 
+1. **Iniciar la aplicación:**
+   ```bash
+   docker-compose up -d --build
+   ```
+
+2. **Detener la aplicación:**
+   ```bash
+   docker-compose down
+   ```
+
+### Opción 2: Usando Docker CLI
 1. **Construir la imagen:**
    ```bash
    docker build -t backend-api .
@@ -93,7 +105,7 @@ Sigue estos pasos para ejecutar la aplicación dentro de un contenedor:
 
 2. **Ejecutar el contenedor:**
    ```bash
-   docker run -p 3000:3000 --env-file .env backend-api
+   docker run -p 3000:3000 --env-file .env -v ${PWD}/uploads:/app/uploads backend-api
    ```
 
 ## 📂 Estructura del Proyecto

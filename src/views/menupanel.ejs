@@ -138,6 +138,21 @@
                     <button onclick="restartServer()" class="btn-add" style="background:#ef4444; width:100%;">🔄 Reiniciar Servidor</button>
                     <button onclick="showLogs()" class="secondary" style="width:100%; margin-top:10px;">ℹ️ Ver Logs</button>
                 </div>
+
+                <!-- GESTIÓN DE VPS REMOTAS -->
+                <h2 style="margin-top: 3rem;">🌐 Servidores VPS Remotos</h2>
+                <div class="stat-card" style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                        <input type="text" id="vps-host" placeholder="IP del servidor" style="flex: 1; min-width: 150px; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        <input type="text" id="vps-user" placeholder="Usuario SSH" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        <input type="password" id="vps-pass" placeholder="Contraseña" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid var(--border); border-radius: 8px;">
+                        <button onclick="addVps()" class="btn-add" style="padding: 10px 20px;">+ Agregar VPS</button>
+                    </div>
+                    
+                    <div id="vps-list" style="background: rgba(0,0,0,0.02); padding: 10px; border-radius: 12px; min-height: 50px;">
+                        <p style="color: var(--text-gray); font-size: 0.9rem; text-align: center;">Cargando lista de servidores...</p>
+                    </div>
+                </div>
             </div>
 
             <!-- Shop View -->
@@ -283,10 +298,14 @@
             });
             if (view === 'dashboard') loadItems();
             if (view === 'shop') loadShop();
-            if (view === 'system') refreshSystemStats();
+            if (view === 'system') {
+                // Carga en paralelo para mayor velocidad
+                refreshSystemStats();
+                loadVps();
+            }
             if (view === 'users') loadUsers();
             if (view === 'reports') loadReports();
-            if (view === 'profile') loadProfile(); // Asegurar que carga el perfil
+            if (view === 'profile') loadProfile();
             if (view === 'purchases') loadPurchases();
         }
 
@@ -547,6 +566,118 @@
             const res = await fetch(`/api/system/logs?token=${token}`);
             const d = await res.json();
             Swal.fire({ title: 'Logs del Servidor', html: `<pre class="log-box">${d.logs}</pre>`, width: '800px' });
+        }
+
+        // --- GESTIÓN DE VPS ---
+        async function loadVps() {
+            try {
+                const res = await fetch(`/api/system/vps?token=${token}`);
+                const servers = await res.json();
+                const container = document.getElementById('vps-list');
+                
+                if (!servers || servers.length === 0) {
+                    container.innerHTML = '<p style="color: var(--text-gray); font-size: 0.9rem; text-align: center; padding: 20px;">No hay servidores guardados.</p>';
+                    return;
+                }
+
+                container.innerHTML = servers.map(s => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding: 12px 10px;">
+                        <div>
+                            <strong style="color: var(--primary);">${s.host}</strong> 
+                            <span style="color: var(--text-gray); font-size: 0.8rem; margin-left: 5px;">user: ${s.username}</span>
+                        </div>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div id="status-${s.host.replace(/\./g, '-')}" style="font-size: 0.85rem; font-family: monospace; color: var(--text-gray);"></div>
+                            <button onclick="getVpsStatus('${s.host}')" class="btn-small" style="background: white; border: 1px solid var(--primary); color: var(--primary);">📡 Consultar</button>
+                            <button onclick="deleteVps('${s.host}')" class="btn-small" style="background: #fee2e2; border: 1px solid #ef4444; color: #ef4444;">🗑️</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                document.getElementById('vps-list').innerHTML = '<p style="color: #ef4444; text-align: center;">Error al cargar lista</p>';
+            }
+        }
+
+        async function deleteVps(host) {
+            if(!confirm(`¿Eliminar servidor ${host}?`)) return;
+            const res = await fetch(`/api/system/vps/${host}?token=${token}`, { method: 'DELETE' });
+            if(res.ok) {
+                loadVps();
+                Swal.fire({ title: 'Eliminado', toast: true, position: 'top-end', timer: 2000, showConfirmButton: false, icon: 'success' });
+            }
+        }
+
+        async function addVps() {
+            const host = document.getElementById('vps-host').value;
+            const username = document.getElementById('vps-user').value;
+            const password = document.getElementById('vps-pass').value;
+
+            if (!host || !username || !password) return Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+
+            const res = await fetch(`/api/system/vps?token=${token}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ host, username, password })
+            });
+
+            if (res.ok) {
+                document.getElementById('vps-host').value = '';
+                document.getElementById('vps-user').value = '';
+                document.getElementById('vps-pass').value = '';
+                loadVps();
+                Swal.fire('Éxito', 'VPS Guardada', 'success');
+            }
+        }
+
+        async function getVpsStatus(host) {
+            const statusDiv = document.getElementById('status-' + host.replace(/\./g, '-'));
+            statusDiv.innerHTML = '<span style="color: #f59e0b; font-size: 0.8rem;">📡 Conectando...</span>';
+
+            try {
+                const res = await fetch(`/api/system/vps/${host}/status?token=${token}`);
+                const d = await res.json();
+                
+                if (res.ok) {
+                    const ramColor = d.ram.percent > 80 ? '#ef4444' : (d.ram.percent > 50 ? '#f59e0b' : '#10b981');
+                    const diskColor = d.disk.percent > 85 ? '#ef4444' : '#10b981';
+
+                    statusDiv.innerHTML = `
+                        <div style="background: white; border: 1px solid #e2e8f0; padding: 12px; border-radius: 12px; width: 300px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                            <div style="font-size: 0.7rem; color: #64748b; margin-bottom: 8px; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                ⏱️ ${d.uptime.split(',')[0]}
+                            </div>
+                            
+                            <div style="margin-bottom: 8px;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:3px;">
+                                    <span>🧠 RAM</span> <strong>${d.ram.used}MB / ${d.ram.total}MB</strong>
+                                </div>
+                                <div style="width:100%; background:#f1f5f9; height:6px; border-radius:3px;">
+                                    <div style="width:${d.ram.percent}%; background:${ramColor}; height:100%; border-radius:3px; transition: width 0.5s;"></div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <div style="display:flex; justify-content:space-between; font-size:0.75rem; margin-bottom:3px;">
+                                    <span>💽 DISCO</span> <strong>${d.disk.percent}%</strong>
+                                </div>
+                                <div style="width:100%; background:#f1f5f9; height:6px; border-radius:3px;">
+                                    <div style="width:${d.disk.percent}%; background:${diskColor}; height:100%; border-radius:3px; transition: width 0.5s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    statusDiv.style.position = 'absolute';
+                    statusDiv.style.right = '0';
+                    statusDiv.style.top = '40px';
+                    statusDiv.style.zIndex = '100';
+                } else {
+                    // Aquí usamos 'd' que ya fue parseado arriba
+                    statusDiv.innerHTML = `<span style="color: #ef4444; font-size: 0.7rem;">❌ ${d.message || 'Fallo de conexión'}</span>`;
+                }
+            } catch (e) { 
+                console.error(e);
+                statusDiv.innerHTML = '<span style="color: #ef4444; font-size: 0.7rem;">❌ Error de Red</span>'; 
+            }
         }
 
         async function loadReports() {

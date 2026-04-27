@@ -10,43 +10,182 @@
         <div class="stat-label">Memoria RAM</div>
         <div id="ram-val" class="stat-val">Cargando...</div>
     </div>
-    <div class="stat-card" style="cursor: pointer;" onclick="Swal.fire('Info', 'Abriendo explorador...', 'info')">
+    <div class="stat-card" style="cursor: pointer;" onclick="window.location='/terminal'">
         <div class="stat-label">Almacenamiento</div>
         <div id="disk-val" class="stat-val">...</div>
         <p style="color:var(--primary); font-size:0.8rem; margin-top:10px; font-weight:700;">📁 VER ARCHIVOS</p>
     </div>
+    <div class="stat-card">
+        <div class="stat-label">Base de Datos</div>
+        <div class="stat-val">📊</div>
+        <button onclick="Swal.fire('Info', 'Cargando tablas...', 'info')" style="background:none; border:1px solid var(--primary); color:var(--primary); padding:5px 10px; border-radius:4px; cursor:pointer; margin-top:10px;">Ver Tablas</button>
+    </div>
 </div>
 
-<div class="stat-card" style="background: #000; color: #10b981; font-family: monospace; height: 300px; overflow-y: auto;" id="term-out">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>💻 Consola del Sistema</h2>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="showLogs()" style="background: #333; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">ℹ️ Ver Logs</button>
+        <button onclick="restartServer()" style="background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">🔄 Reiniciar</button>
+    </div>
+</div>
+
+<div class="stat-card" style="background: #000; color: #10b981; font-family: monospace; height: 300px; overflow-y: auto; padding: 1rem; border-radius: 8px 8px 0 0;" id="term-out">
     Pansilius Console Ready...<br>
 </div>
-<input type="text" id="term-in" style="width: 100%; background: #111; color: #fff; border: 1px solid #333; padding: 1rem; margin-top: 10px; font-family: monospace;" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter') sendCmd()">
+<input type="text" id="term-in" style="width: 100%; background: #111; color: #fff; border: 1px solid #333; padding: 1rem; font-family: monospace; border-radius: 0 0 8px 8px;" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter') sendCmd()">
+
+<h2 style="margin-top: 3rem;">🌐 Gestión de VPS Remotas</h2>
+<div class="stat-card" style="margin-bottom: 2rem;">
+    <div style="display: flex; gap: 10px; margin-bottom: 1.5rem; flex-wrap: wrap;">
+        <input type="text" id="vps-host" placeholder="IP del servidor" style="flex: 1; min-width: 150px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="text" id="vps-user" placeholder="Usuario SSH" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        <input type="password" id="vps-pass" placeholder="Contraseña" style="flex: 1; min-width: 120px; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+        <button onclick="addVps()" style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold;">+ Agregar VPS</button>
+    </div>
+    
+    <div id="vps-list" style="background: #f9f9f9; padding: 10px; border-radius: 8px; min-height: 50px;">
+        <p style="color: #666; font-size: 0.9rem; text-align: center;">Cargando lista de servidores...</p>
+    </div>
+</div>
 
 <script>
     const token = localStorage.getItem('token');
+
     async function updateStats() {
-        const res = await fetch('/api/system/stats?token=' + token);
-        const d = await res.json();
-        document.getElementById('ram-val').textContent = d.ram.used + ' GB';
-        document.getElementById('disk-val').textContent = d.storage.used;
+        try {
+            const res = await fetch('/api/system/stats?token=' + token);
+            const d = await res.json();
+            document.getElementById('ram-val').textContent = d.ram.used + ' / ' + d.ram.total + ' GB';
+            document.getElementById('disk-val').textContent = d.storage.used + ' / ' + d.storage.total;
+        } catch(e) {}
     }
 
     async function sendCmd() {
         const i = document.getElementById('term-in');
         const cmd = i.value; if(!cmd) return;
-        document.getElementById('term-out').innerHTML += `<br>$ ${cmd}`;
+        const out = document.getElementById('term-out');
+        out.innerHTML += `<br><span style="color:#60a5fa">$ ${cmd}</span>`;
         i.value = '';
-        const res = await fetch('/api/system/terminal?token=' + token, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({command: cmd})
-        });
-        const d = await res.json();
-        document.getElementById('term-out').innerHTML += `<br>${(d.output || d.error || 'OK').replace(/\n/g, '<br>')}`;
-        document.getElementById('term-out').scrollTop = document.getElementById('term-out').scrollHeight;
+        try {
+            const res = await fetch('/api/system/terminal?token=' + token, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({command: cmd})
+            });
+            const d = await res.json();
+            out.innerHTML += `<br>${(d.output || d.error || 'OK').replace(/\n/g, '<br>')}`;
+            out.scrollTop = out.scrollHeight;
+        } catch(e) { out.innerHTML += '<br><span style="color:red">Error de red</span>'; }
     }
 
+    async function showLogs() {
+        try {
+            const res = await fetch('/api/system/logs?token=' + token);
+            const d = await res.json();
+            document.getElementById('term-out').innerHTML += `<br><pre style="color:#94a3b8; font-size: 0.8rem;">${d.logs}</pre>`;
+            document.getElementById('term-out').scrollTop = document.getElementById('term-out').scrollHeight;
+        } catch(e) { alert('No se pudieron cargar los logs'); }
+    }
+
+    async function restartServer() {
+        const confirm = await Swal.fire({
+            title: '¿Reiniciar Servidor?',
+            text: "Se cerrarán las conexiones activas temporalmente.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, reiniciar'
+        });
+        if(confirm.isConfirmed) {
+            fetch('/api/system/terminal?token=' + token, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({command: 'pm2 restart all'})
+            });
+            Swal.fire('Enviado', 'El servidor se está reiniciando...', 'success');
+        }
+    }
+
+    async function loadVps() {
+        try {
+            const res = await fetch('/api/system/vps?token=' + token);
+            const servers = await res.json();
+            const container = document.getElementById('vps-list');
+            
+            if (!servers || servers.length === 0) {
+                container.innerHTML = '<p style="color: #666; font-size: 0.9rem; text-align: center; padding: 20px;">No hay servidores guardados.</p>';
+                return;
+            }
+
+            container.innerHTML = servers.map(s => `
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding: 12px 10px;">
+                    <div>
+                        <strong style="color: #333;">${s.host}</strong> 
+                        <span style="color: #666; font-size: 0.8rem; margin-left: 5px;">user: ${s.username}</span>
+                    </div>
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div id="status-${s.host.replace(/\./g, '-')}" style="font-size: 0.85rem; font-family: monospace; color: #555;"></div>
+                        <button onclick="getVpsStatus('${s.host}')" style="background: white; border: 1px solid var(--primary); color: var(--primary); padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">📡 Consultar</button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (e) {
+            document.getElementById('vps-list').innerHTML = '<p style="color: red; text-align: center;">Error al conectar con la API de VPS</p>';
+        }
+    }
+
+    async function addVps() {
+        const host = document.getElementById('vps-host').value;
+        const username = document.getElementById('vps-user').value;
+        const password = document.getElementById('vps-pass').value;
+
+        if (!host || !username || !password) return Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+
+        try {
+            const res = await fetch('/api/system/vps?token=' + token, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ host, username, password })
+            });
+            
+            if (res.ok) {
+                document.getElementById('vps-host').value = '';
+                document.getElementById('vps-user').value = '';
+                document.getElementById('vps-pass').value = '';
+                loadVps();
+                Swal.fire('Éxito', 'Servidor guardado', 'success');
+            } else {
+                Swal.fire('Error', 'No se pudo guardar la VPS', 'error');
+            }
+        } catch(e) {
+            Swal.fire('Error', 'Error de conexión', 'error');
+        }
+    }
+
+    async function getVpsStatus(host) {
+        const statusDiv = document.getElementById('status-' + host.replace(/\./g, '-'));
+        statusDiv.innerHTML = '<span style="color: #f59e0b;">⏳ Conectando...</span>';
+
+        try {
+            const res = await fetch(`/api/system/vps/${host}/status?token=` + token);
+            const data = await res.json();
+            
+            if (res.ok) {
+                const ramLine = data.ram.split('\n')[1].trim().split(/\s+/);
+                const diskLine = data.disk.split('\n')[1].trim().split(/\s+/);
+                statusDiv.innerHTML = `<span style="color: #10b981;">🧠 ${ramLine[2]} / ${ramLine[1]} | 💽 ${diskLine[4]}</span>`;
+            } else {
+                statusDiv.innerHTML = '<span style="color: #ef4444;">❌ Fallo</span>';
+            }
+        } catch (e) {
+            statusDiv.innerHTML = '<span style="color: #ef4444;">❌ Error</span>';
+        }
+    }
+
+    // Inicialización
     updateStats();
+    loadVps();
+    setInterval(updateStats, 10000);
 </script>
 
 <%- include('parts/footer') %>

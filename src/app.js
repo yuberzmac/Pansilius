@@ -12,11 +12,14 @@ app.set('views', path.join(__dirname, 'views'));
 
 // --- Middleware Global ---
 app.use(helmet({
-  contentSecurityPolicy: false, 
+  contentSecurityPolicy: false,
 }));
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json());app.use(express.urlencoded({ extended: true }));
 
 // --- Archivos Estáticos ---
 app.use(express.static(path.join(__dirname, '../public'), { extensions: ['html'] }));

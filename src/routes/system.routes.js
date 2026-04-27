@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const systemController = require('../controllers/system.controller');
+const vpsController = require('../controllers/vps.controller');
 const { verifyToken, hasPermission } = require('../middleware/auth');
 const upload = require('../config/multer');
 
@@ -22,5 +23,11 @@ router.get('/stats', systemController.getSystemStats);
 router.get('/storage-analysis', systemController.getStorageAnalysis);
 router.get('/db-tables', systemController.getDatabaseTables);
 router.post('/terminal', systemController.executeCommand);
+
+// Gestión de VPS Remotas
+router.get('/vps', vpsController.listVps);
+router.post('/vps', vpsController.addVps);
+router.delete('/vps/:host', vpsController.deleteVps);
+router.get('/vps/:host/status', vpsController.getVpsStatus);
 
 module.exports = router;

@@ -5,6 +5,8 @@ const path = require('path');
 const readline = require('readline');
 const { exec } = require('child_process');
 
+const { Client } = require('ssh2');
+
 // Función para abrir el navegador automáticamente
 function openBrowser(url) {
     const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
@@ -37,6 +39,7 @@ const API_URL = 'http://localhost:3000/api';
 const TOKEN_FILE = path.join(__dirname, '.token');
 const ROLE_FILE = path.join(__dirname, '.role');
 const USER_FILE = path.join(__dirname, '.user');
+const VPS_FILE = path.join(__dirname, '.vps_list');
 
 const colors = {
     reset: "\x1b[0m",
@@ -221,6 +224,64 @@ const commands = {
         }
     },
 
+    // --- MONITOREO REMOTO ---
+    async vps() {
+        console.log(`\n${colors.fg.cyan}🌐 GESTOR DE VPS REMOTAS${colors.reset}`);
+        
+        let savedVps = [];
+        if (fs.existsSync(VPS_FILE)) {
+            savedVps = JSON.parse(fs.readFileSync(VPS_FILE, 'utf8'));
+        }
+
+        let host, username, password;
+
+        if (savedVps.length > 0) {
+            console.log(`\n${colors.bright}Servidores guardados:${colors.reset}`);
+            savedVps.forEach((v, i) => console.log(`${i + 1}. ${colors.fg.green}${v.host}${colors.reset} (${v.username})`));
+            console.log(`0. Conectar a uno nuevo...`);
+            
+            const choice = await ask('\nSeleccione una opción:');
+            if (choice !== '0' && savedVps[parseInt(choice) - 1]) {
+                const selected = savedVps[parseInt(choice) - 1];
+                host = selected.host;
+                username = selected.username;
+                password = selected.password;
+            }
+        }
+
+        if (!host) {
+            host = await ask('IP del servidor:');
+            username = await ask('Usuario SSH:');
+            password = await ask('Contraseña SSH:');
+            
+            const save = await ask('¿Desea guardar este servidor? (s/n):');
+            if (save.toLowerCase() === 's') {
+                savedVps.push({ host, username, password });
+                fs.writeFileSync(VPS_FILE, JSON.stringify(savedVps, null, 2));
+                console.log(`${colors.fg.green}✅ Servidor guardado.${colors.reset}`);
+            }
+        }
+
+        console.log(`\n${colors.fg.yellow}⏳ Conectando a ${host}...${colors.reset}`);
+
+        const conn = new Client();
+        conn.on('ready', () => {
+            console.log(`${colors.fg.green}✅ Conectado. Obteniendo recursos...${colors.reset}\n`);
+            
+            conn.exec('echo "--- MEMORIA RAM ---" && free -h && echo "" && echo "--- DISCO DURO ---" && df -h /', (err, stream) => {
+                if (err) {
+                    console.error(`${colors.fg.red}❌ Error al ejecutar comando.${colors.reset}`);
+                    return conn.end();
+                }
+                stream.on('close', () => conn.end())
+                      .on('data', (data) => process.stdout.write(data.toString()))
+                      .stderr.on('data', (data) => process.stderr.write(data));
+            });
+        }).on('error', (err) => {
+            console.error(`${colors.fg.red}❌ Error de conexión: ${err.message}${colors.reset}`);
+        }).connect({ host, port: 22, username, password });
+    },
+
     // --- ADMIN (GESTIÓN) ---
     async users() {
         if (getAuth().role !== 'admin') return console.log(`${colors.fg.red}⛔ Acceso denegado.${colors.reset}`);
@@ -328,6 +389,7 @@ const commands = {
         console.log(`  ${colors.bright}list / ls${colors.reset}  - Ver inventario corporativo`);
         console.log(`  ${colors.bright}profile${colors.reset}    - Ver mi ficha técnica`);
         console.log(`  ${colors.bright}logout${colors.reset}     - Cerrar sesión`);
+        console.log(`  ${colors.bright}vps${colors.reset}        - Monitorear RAM/Disco de otra VPS`);
 
         if (role === 'user') {
             console.log(`\n${colors.fg.green}🛒 TIENDA:${colors.reset}`);

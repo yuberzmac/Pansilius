@@ -77,6 +77,18 @@ const initDB = async () => {
       )
     `);
 
+    // 3.6 VPS Remotas
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS vps_remotas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        host VARCHAR(100) NOT NULL,
+        username VARCHAR(100) NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        alias VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     // 4. Role-Permisos
     await connection.query(`CREATE TABLE IF NOT EXISTS role_permisos (role_id INT, permiso_id INT, PRIMARY KEY(role_id, permiso_id), FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE, FOREIGN KEY(permiso_id) REFERENCES permisos(id) ON DELETE CASCADE)`);
 
@@ -90,7 +102,8 @@ const initDB = async () => {
       ['user:manage', 'Gestionar roles y usuarios'],
       ['user:profile', 'Gestionar perfil propio'],
       ['shop:buy', 'Realizar compras en la tienda'],
-      ['admin:panel', 'Acceso total al panel administrativo']
+      ['admin:panel', 'Acceso total al panel administrativo'],
+      ['vps:manage', 'Gestionar servidores VPS remotos']
     ];
 
     for (const [slug, desc] of perms) {

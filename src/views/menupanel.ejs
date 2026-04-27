@@ -608,24 +608,40 @@
         }
 
         async function addVps() {
-            const host = document.getElementById('vps-host').value;
-            const username = document.getElementById('vps-user').value;
-            const password = document.getElementById('vps-pass').value;
+            try {
+                const host = document.getElementById('vps-host').value.trim();
+                const username = document.getElementById('vps-user').value.trim();
+                const password = document.getElementById('vps-pass').value.trim();
 
-            if (!host || !username || !password) return Swal.fire('Error', 'Todos los campos son obligatorios', 'error');
+                if (!host || !username || !password) {
+                    return Swal.fire('Atención', 'Todos los campos son obligatorios', 'warning');
+                }
 
-            const res = await fetch(`/api/system/vps?token=${token}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ host, username, password })
-            });
+                Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-            if (res.ok) {
-                document.getElementById('vps-host').value = '';
-                document.getElementById('vps-user').value = '';
-                document.getElementById('vps-pass').value = '';
-                loadVps();
-                Swal.fire('Éxito', 'VPS Guardada', 'success');
+                const res = await fetch(`/api/system/vps`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ host, username, password })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    document.getElementById('vps-host').value = '';
+                    document.getElementById('vps-user').value = '';
+                    document.getElementById('vps-pass').value = '';
+                    await loadVps();
+                    Swal.fire('¡Éxito!', 'VPS Guardada en la base de datos', 'success');
+                } else {
+                    Swal.fire('Error', data.message || 'No se pudo guardar', 'error');
+                }
+            } catch (error) {
+                console.error('Error en addVps:', error);
+                Swal.fire('Error Crítico', 'Hubo un problema al conectar con el servidor', 'error');
             }
         }
 

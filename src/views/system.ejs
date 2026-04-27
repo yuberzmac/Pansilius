@@ -1,0 +1,52 @@
+<%- include('parts/header') %>
+
+<header class="top-bar">
+    <h1>Control del Servidor</h1>
+    <p>Estado y herramientas avanzadas</p>
+</header>
+
+<div class="system-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="stat-card">
+        <div class="stat-label">Memoria RAM</div>
+        <div id="ram-val" class="stat-val">Cargando...</div>
+    </div>
+    <div class="stat-card" style="cursor: pointer;" onclick="Swal.fire('Info', 'Abriendo explorador...', 'info')">
+        <div class="stat-label">Almacenamiento</div>
+        <div id="disk-val" class="stat-val">...</div>
+        <p style="color:var(--primary); font-size:0.8rem; margin-top:10px; font-weight:700;">📁 VER ARCHIVOS</p>
+    </div>
+</div>
+
+<div class="stat-card" style="background: #000; color: #10b981; font-family: monospace; height: 300px; overflow-y: auto;" id="term-out">
+    Pansilius Console Ready...<br>
+</div>
+<input type="text" id="term-in" style="width: 100%; background: #111; color: #fff; border: 1px solid #333; padding: 1rem; margin-top: 10px; font-family: monospace;" placeholder="Escribe un comando..." onkeydown="if(event.key==='Enter') sendCmd()">
+
+<script>
+    const token = localStorage.getItem('token');
+    async function updateStats() {
+        const res = await fetch('/api/system/stats?token=' + token);
+        const d = await res.json();
+        document.getElementById('ram-val').textContent = d.ram.used + ' GB';
+        document.getElementById('disk-val').textContent = d.storage.used;
+    }
+
+    async function sendCmd() {
+        const i = document.getElementById('term-in');
+        const cmd = i.value; if(!cmd) return;
+        document.getElementById('term-out').innerHTML += `<br>$ ${cmd}`;
+        i.value = '';
+        const res = await fetch('/api/system/terminal?token=' + token, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({command: cmd})
+        });
+        const d = await res.json();
+        document.getElementById('term-out').innerHTML += `<br>${(d.output || d.error || 'OK').replace(/\n/g, '<br>')}`;
+        document.getElementById('term-out').scrollTop = document.getElementById('term-out').scrollHeight;
+    }
+
+    updateStats();
+</script>
+
+<%- include('parts/footer') %>

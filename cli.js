@@ -3,6 +3,35 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+const { exec } = require('child_process');
+
+// Función para abrir el navegador automáticamente
+function openBrowser(url) {
+    const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+    console.log(`\n🔗 Si el navegador no se abre automáticamente, haz clic aquí: \x1b[36m${url}\x1b[0m\n`);
+    exec(`${start} ${url}`, (err) => {
+        if (err) {
+            console.log('💡 Nota: No se pudo abrir el navegador automáticamente (es normal en servidores remotos).');
+        }
+    });
+}
+
+// Al iniciar, si no hay argumentos, mostrar el centro de mando
+if (process.argv.length <= 2) {
+    // Solo intentar abrir navegador si NO estamos en una terminal web
+    // Detectamos por la variable TERM o si estamos en un entorno interactivo básico
+    const isWebTerm = process.env.TERM === 'xterm-256color' || process.env.SOCKET_TERM === 'true';
+    
+    console.log('\n\x1b[1m\x1b[35m  [ PANSILIUS COMMAND CENTER v2.8 PRO ]\x1b[0m');
+    
+    if (!isWebTerm) {
+        console.log('\x1b[1m\x1b[33m  🌐 ACCESO A LA TERMINAL WEB REAL:\x1b[0m');
+        console.log('\x1b[1m\x1b[36m  👉 https://git.minecraft17.online/launcher.html\x1b[0m\n');
+        openBrowser('https://git.minecraft17.online/launcher.html');
+    } else {
+        console.log('\x1b[90m  Conectado a través de Pansilius Shell...\x1b[0m\n');
+    }
+}
 
 const API_URL = 'http://localhost:3000/api';
 const TOKEN_FILE = path.join(__dirname, '.token');
@@ -322,7 +351,7 @@ const commands = {
     }
 };
 
-console.clear();
+// console.clear(); <-- Eliminamos esto para que no se borre el link del navegador
 console.log(`${colors.fg.cyan}${colors.bright}==========================================`);
 console.log(`    PANSILIUS COMMAND CENTER v2.8 PRO`);
 console.log(`==========================================${colors.reset}\n`);

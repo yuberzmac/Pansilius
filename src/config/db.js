@@ -47,10 +47,35 @@ const initDB = async () => {
     try { await connection.query('ALTER TABLE users ADD COLUMN failed_attempts INT DEFAULT 0 AFTER id_roles'); } catch (e) { }
     try { await connection.query('ALTER TABLE users ADD COLUMN is_blocked BOOLEAN DEFAULT FALSE AFTER failed_attempts'); } catch (e) { }
     try { await connection.query('ALTER TABLE users ADD COLUMN token_version INT DEFAULT 1 AFTER is_blocked'); } catch (e) { }
+    try { await connection.query('ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL'); } catch (e) { }
+    try { await connection.query('ALTER TABLE users ADD COLUMN reset_token_expires DATETIME DEFAULT NULL'); } catch (e) { }
     try {
       await connection.query('ALTER TABLE users ADD COLUMN email VARCHAR(150) UNIQUE AFTER username');
       console.log('✨ Columna "email" añadida con éxito.');
     } catch (e) { }
+
+    // 3.5 Productos y Ventas
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        descripcion TEXT,
+        precio DECIMAL(10,2) DEFAULT 0,
+        stock INT DEFAULT 0,
+        estado BOOLEAN DEFAULT TRUE
+      )
+    `);
+    
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS ventas (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        item_id INT,
+        fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (item_id) REFERENCES items(id) ON DELETE CASCADE
+      )
+    `);
 
     // 4. Role-Permisos
     await connection.query(`CREATE TABLE IF NOT EXISTS role_permisos (role_id INT, permiso_id INT, PRIMARY KEY(role_id, permiso_id), FOREIGN KEY(role_id) REFERENCES roles(id) ON DELETE CASCADE, FOREIGN KEY(permiso_id) REFERENCES permisos(id) ON DELETE CASCADE)`);

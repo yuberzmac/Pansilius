@@ -1,0 +1,61 @@
+<%- include('parts/header') %>
+
+<header class="top-bar" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:3rem;">
+    <div>
+        <h1>Dashboard Modular</h1>
+        <p>Gestión de inventario en tiempo real</p>
+    </div>
+    <button class="btn-add">+ Nuevo Producto</button>
+</header>
+
+<div class="stats-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; margin-bottom:3rem;">
+    <div class="stat-card">
+        <div class="stat-label">Total Productos</div>
+        <div id="stat-total" class="stat-val">...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Activos</div>
+        <div id="stat-active" class="stat-val" style="color:var(--success);">...</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Inactivos</div>
+        <div id="stat-inactive" class="stat-val" style="color:var(--danger);">...</div>
+    </div>
+</div>
+
+<div id="product-container" class="product-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:1.5rem;">
+    <!-- Se llena con JS -->
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    
+    async function loadItems() {
+        const res = await fetch('/api/items?token=' + token);
+        const items = await res.json();
+        
+        // Actualizar contadores (Lo que se había roto antes)
+        document.getElementById('stat-total').textContent = items.length;
+        document.getElementById('stat-active').textContent = items.filter(i => i.estado).length;
+        document.getElementById('stat-inactive').textContent = items.filter(i => !i.estado).length;
+
+        document.getElementById('product-container').innerHTML = items.map(i => `
+            <div class="stat-card" style="position:relative;">
+                <div style="position:absolute; top:1rem; right:1rem;">
+                    <button class="btn-delete">✕</button>
+                </div>
+                <div style="font-weight:800; font-size:1.2rem; margin-bottom:0.5rem;">${i.nombre}</div>
+                <p style="color:#64748b; font-size:0.9rem; margin-bottom:1rem;">${i.descripcion}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <b style="color:var(--primary); font-size:1.3rem;">$${i.precio}</b>
+                    <button class="btn-add" style="padding:0.5rem 1rem !important; font-size:0.8rem !important;">Editar</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function logout() { localStorage.clear(); window.location.href = '/'; }
+    loadItems();
+</script>
+
+<%- include('parts/footer') %>

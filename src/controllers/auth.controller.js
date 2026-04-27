@@ -12,8 +12,10 @@ const register = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // IMPORTANTE: Asignamos id_roles = 2 (Usuario normal) por defecto
     const [result] = await pool.execute(
-      'INSERT INTO users (username, email, password, nombre, telefono, foto) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO users (username, email, password, nombre, telefono, foto, id_roles) VALUES (?, ?, ?, ?, ?, ?, 2)',
       [username, email, hashedPassword, nombre || null, telefono || null, foto]
     );
 
@@ -24,7 +26,7 @@ const register = async (req, res) => {
       const field = error.message.includes('username') ? 'usuario' : 'email';
       return res.status(400).json({ message: `Este ${field} ya está en uso` });
     }
-    res.status(500).json({ message: 'Error interno del servidor', error: error.message });
+    res.status(500).json({ message: 'Error al registrar el usuario', error: error.message });
   }
 };
 
@@ -90,9 +92,32 @@ const login = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const userId = req.user.id;
-    const [rows] = await pool.execute('SELECT id, username, email, nombre, telefono, foto FROM users WHERE id = ?', [userId]);
+    const [rows] = await pool.execute(`
+      SELECT u.id, u.username, u.email, u.nombre, u.telefono, u.foto, r.nombre as role, r.id as role_id
+      FROM users u 
+      LEFT JOIN roles r ON u.id_roles = r.id 
+      WHERE u.id = ?
+    `, [userId]);
+
     if (rows.length === 0) return res.status(404).json({ message: 'Usuario no encontrado' });
-    res.json(rows[0]);
+
+    const user = rows[0];
+    user.role = user.role || 'user';
+
+    // Obtener permisos (slugs) asociados a este rol
+    if (user.role_id) {
+        const [permRows] = await pool.execute(`
+          SELECT p.slug 
+          FROM permisos p
+          JOIN role_permisos rp ON p.id = rp.permiso_id
+          WHERE rp.role_id = ?
+        `, [user.role_id]);
+        user.permissions = permRows.map(p => p.slug);
+    } else {
+        user.permissions = [];
+    }
+
+    res.json(user);
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener el perfil', error: error.message });
   }
@@ -148,4 +173,66 @@ const updateProfile = async (req, res) => {
   }
 };
 
-module.exports = { register, login, getProfile, updateProfile, verifyPassword };
+const crypto = require('crypto');
+const { sendResetEmail } = require('../config/mail');
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const [users] = await pool.execute('SELECT id FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'No existe un usuario con ese correo' });
+    }
+
+    const token = crypto.randomBytes(20).toString('hex');
+    const expires = new Date(Date.now() + 3600000); // 1 hora de validez
+
+    await pool.execute(
+      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
+      [token, expires, email]
+    );
+
+    try {
+      await sendResetEmail(email, token);
+      res.json({ message: 'Correo de recuperación enviado con éxito' });
+    } catch (mailError) {
+      console.error('Error enviando mail:', mailError);
+      res.status(500).json({ message: 'Error al enviar el correo. Verifica las credenciales SMTP.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error interno', error: error.message });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    // 1. Buscar al usuario que tiene ese token y que no haya expirado
+    const [users] = await pool.execute(
+      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW()',
+      [token]
+    );
+
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'El enlace de recuperación es inválido o ha expirado.' });
+    }
+
+    const userId = users[0].id;
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // 2. Actualizar contraseña, limpiar tokens e incrementar versión para cerrar sesiones antiguas
+    await pool.execute(
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL, token_version = token_version + 1 WHERE id = ?',
+      [hashedPassword, userId]
+    );
+
+    res.json({ message: '¡Éxito! Tu contraseña ha sido actualizada. Ya puedes iniciar sesión.' });
+  } catch (error) {
+    console.error('Error al resetear contraseña:', error);
+    res.status(500).json({ message: 'Error al procesar el cambio de contraseña', error: error.message });
+  }
+};
+
+module.exports = { register, login, getProfile, updateProfile, verifyPassword, forgotPassword, resetPassword };

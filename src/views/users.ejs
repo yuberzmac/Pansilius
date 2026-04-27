@@ -1,0 +1,41 @@
+<%- include('parts/header') %>
+
+<header class="top-bar">
+    <h1>Gestión de Usuarios</h1>
+    <p>Administra los accesos al sistema Pansilius</p>
+</header>
+
+<div class="stat-card">
+    <table style="width: 100%;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--border);">
+                <th style="padding: 1rem; text-align: left;">Usuario</th>
+                <th style="padding: 1rem; text-align: left;">Rol</th>
+                <th style="padding: 1rem; text-align: right;">Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="users-table-body">
+            <!-- Se llena dinámicamente -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    async function loadUsers() {
+        const res = await fetch('/api/admin/users?token=' + token);
+        const users = await res.json();
+        document.getElementById('users-table-body').innerHTML = users.map(u => `
+            <tr>
+                <td style="padding: 1rem;"><b>${u.username}</b><br><small>${u.email || ''}</small></td>
+                <td style="padding: 1rem;"><span class="badge ${u.role === 'admin' ? 'badge-active' : 'badge-inactive'}">${u.role}</span></td>
+                <td style="padding: 1rem; text-align: right;">
+                    <button class="btn-delete" onclick="Swal.fire('Info', 'Función protegida', 'info')">✕</button>
+                </td>
+            </tr>
+        `).join('');
+    }
+    loadUsers();
+</script>
+
+<%- include('parts/footer') %>

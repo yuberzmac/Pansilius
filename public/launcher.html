@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pansilius Launcher</title>
+    <style>
+        body { background: #0c1117; color: white; font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .loader { border: 4px solid #30363d; border-top: 4px solid #58a6ff; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div style="text-align: center;">
+        <div class="loader" style="margin: 0 auto 20px;"></div>
+        <p>Iniciando Mini Terminal...</p>
+    </div>
+    <script>
+        // Abrir la terminal en una ventana pequeña (Mini Ventana)
+        const miniWin = window.open('/terminal', 'PansiliusTerminal', 'width=500,height=700,menubar=no,toolbar=no,location=no,status=no');
+        
+        if (miniWin) {
+            // Si se abrió, cerramos esta pestaña lanzadora
+            setTimeout(() => window.close(), 1000);
+        } else {
+            // Si el bloqueador de popups lo detuvo
+            document.body.innerHTML = "<h2>⚠️ Por favor, permite los popups para abrir la Mini Terminal.</h2><button onclick='location.reload()'>Reintentar</button>";
+        }
+    </script>
+</body>
+</html>

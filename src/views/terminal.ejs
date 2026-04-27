@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pansilius | REAL Terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.1.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.1.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; background: #0c1117; overflow: hidden; touch-action: none; }
+        #terminal-container { height: calc(100vh - 30px); width: 100vw; padding: 5px; box-sizing: border-box; }
+        .xterm-viewport { background-color: #0c1117 !important; }
+        .pro-header { 
+            background: #161b22; color: #8b949e; padding: 0 15px; 
+            font-family: sans-serif; font-size: 10px; 
+            display: flex; justify-content: space-between; border-bottom: 1px solid #30363d;
+            height: 30px; align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="pro-header">
+        <span>PANSILIUS BASH SESSION [LIVE]</span>
+        <span id="status-text">OFFLINE</span>
+    </div>
+    <div id="terminal-container"></div>
+
+    <script>
+        const socket = io();
+        const term = new Terminal({
+            cursorBlink: true,
+            theme: { background: '#0c1117', foreground: '#c9d1d9' },
+            fontSize: (window.innerWidth < 480) ? 12 : 14
+        });
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+        term.open(document.getElementById('terminal-container'));
+        
+        setTimeout(() => fitAddon.fit(), 100);
+
+        socket.on('connect', () => {
+            const st = document.getElementById('status-text');
+            st.textContent = 'ONLINE';
+            st.style.color = '#39d353';
+        });
+
+        socket.on('output', (data) => term.write(data));
+        term.onData((data) => socket.emit('input', data));
+
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+            if (window.innerWidth < 480) term.options.fontSize = 12;
+            else term.options.fontSize = 14;
+        });
+
+        // Forzar enfoque del teclado en móvil al tocar
+        document.addEventListener('touchstart', () => term.focus());
+    </script>
+</body>
+</html>

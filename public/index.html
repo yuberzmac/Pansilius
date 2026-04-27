@@ -32,6 +32,9 @@
                 <label>Contraseña</label>
                 <input type="password" id="l-pass" placeholder="••••••••">
             </div>
+            <div style="text-align: right; margin-bottom: 1.5rem; margin-top: -0.5rem;">
+                <a href="#" onclick="forgotPassword()" style="font-size: 0.8rem; color: var(--primary); text-decoration: none; font-weight: 500;">¿Olvidaste tu contraseña?</a>
+            </div>
             <button onclick="login()" class="btn-primary">Entrar ahora</button>
         </div>
 
@@ -70,13 +73,8 @@
     <script>
         // Redirigir si ya hay token
         const savedToken = localStorage.getItem('token');
-        const savedRole = localStorage.getItem('role');
         if (savedToken) {
-            if (savedRole === 'admin') {
-                window.location.href = '/menupanel.html';
-            } else {
-                window.location.href = '/tienda.html';
-            }
+            window.location.href = '/dashboard';
         }
 
         function toggleAuth(isLogin) {
@@ -122,12 +120,8 @@
                     localStorage.setItem('username', username);
                     localStorage.setItem('role', data.role);
                     
-                    // Redirección profesional según el rol
-                    if (data.role === 'admin') {
-                        window.location.href = '/menupanel.html';
-                    } else {
-                        window.location.href = '/tienda.html';
-                    }
+                    // Todos van al dashboard profesional ahora
+                    window.location.href = '/dashboard';
                 } else {
                     Swal.fire('Atención', data.message, 'error');
                 }
@@ -155,6 +149,40 @@
                 }
             } catch (e) {
                 Swal.fire('Error', 'Error al registrar', 'error');
+            }
+        }
+
+        async function forgotPassword() {
+            const { value: email } = await Swal.fire({
+                title: 'Recuperar Contraseña',
+                input: 'email',
+                inputLabel: 'Ingresa tu correo electrónico corporativo',
+                inputPlaceholder: 'ejemplo@empresa.com',
+                showCancelButton: true,
+                confirmButtonText: 'Enviar enlace',
+                cancelButtonText: 'Cancelar',
+                inputValidator: (value) => {
+                    if (!value) return '¡Necesitamos tu correo!';
+                }
+            });
+
+            if (email) {
+                Swal.fire({ title: 'Enviando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                try {
+                    const res = await fetch('/api/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        Swal.fire('¡Enviado!', 'Revisa tu bandeja de entrada (incluyendo spam).', 'success');
+                    } else {
+                        Swal.fire('Error', data.message, 'error');
+                    }
+                } catch (e) {
+                    Swal.fire('Error', 'No se pudo conectar con el servidor de correo', 'error');
+                }
             }
         }
     </script>

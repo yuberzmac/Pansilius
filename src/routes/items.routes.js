@@ -16,5 +16,3 @@ router.put('/:id', hasPermission('item:edit'), itemsController.updateItem);
 router.delete('/:id', hasPermission('item:delete'), itemsController.deleteItem);
 
 module.exports = router;
-
-module.exports = router;

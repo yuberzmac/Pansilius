@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  // Intentar obtener el token del header o de los parámetros de la URL
+  const token = (authHeader && authHeader.split(' ')[1]) || req.query.token;
 
   if (!token) {
     return res.status(401).json({ message: 'Token no proporcionado' });

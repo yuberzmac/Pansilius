@@ -21,4 +21,8 @@ router.get('/profile', verifyToken, hasPermission('user:profile'), authControlle
 router.post('/verify-password', verifyToken, hasPermission('user:profile'), authController.verifyPassword);
 router.put('/profile', verifyToken, hasPermission('user:profile'), upload.single('foto'), authController.updateProfile);
 
+// Rutas públicas de recuperación de contraseña
+router.post('/forgot-password', authController.forgotPassword);
+router.post('/reset-password', authController.resetPassword);
+
 module.exports = router;
